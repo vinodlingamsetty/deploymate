@@ -1,11 +1,12 @@
-import { hash, verify } from '@node-rs/argon2'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 /**
  * Hash a password using Argon2
+ * Uses dynamic import to avoid loading native module at build time
  */
 export async function hashPassword(password: string): Promise<string> {
+  const { hash } = await import('@node-rs/argon2')
   return hash(password, {
     memoryCost: 19456,
     timeCost: 2,
@@ -16,9 +17,11 @@ export async function hashPassword(password: string): Promise<string> {
 
 /**
  * Verify a password against an Argon2 hash
+ * Uses dynamic import to avoid loading native module at build time
  */
-export async function verifyPassword(hash: string, password: string): Promise<boolean> {
-  return verify(hash, password, {
+export async function verifyPassword(hashValue: string, password: string): Promise<boolean> {
+  const { verify } = await import('@node-rs/argon2')
+  return verify(hashValue, password, {
     memoryCost: 19456,
     timeCost: 2,
     outputLen: 32,
