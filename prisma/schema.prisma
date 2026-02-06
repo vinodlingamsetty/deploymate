@@ -25,7 +25,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  memberships Membership[]
+  memberships     Membership[]
+  appGroupMembers AppGroupMember[]
+  orgGroupMembers OrgGroupMember[]
 
   @@index([email])
 }
@@ -43,6 +45,7 @@ model Organization {
 
   memberships Membership[]
   apps        App[]
+  orgGroups   OrgDistGroup[]
 
   @@index([slug])
 }
@@ -85,8 +88,10 @@ model App {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   releases     Release[]
+  appGroups    AppDistGroup[]
+  orgGroupApps OrgGroupApp[]
 
   @@unique([orgId, bundleId])
   @@index([orgId])
@@ -116,7 +121,8 @@ model Release {
   downloadCount     Int         @default(0)
   createdAt         DateTime    @default(now())
 
-  app App @relation(fields: [appId], references: [id], onDelete: Cascade)
+  app           App            @relation(fields: [appId], references: [id], onDelete: Cascade)
+  releaseGroups ReleaseGroup[]
 
   @@unique([appId, version, buildNumber])
   @@index([appId])
@@ -127,4 +133,105 @@ enum ReleaseType {
   ALPHA
   BETA
   RELEASE_CANDIDATE
+}
+
+// ============================================================
+// DISTRIBUTION GROUPS
+// ============================================================
+
+model AppDistGroup {
+  id          String   @id @default(cuid())
+  name        String
+  appId       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  app           App               @relation(fields: [appId], references: [id], onDelete: Cascade)
+  members       AppGroupMember[]
+  releaseGroups ReleaseGroup[]
+
+  @@unique([appId, name])
+  @@index([appId])
+}
+
+model AppGroupMember {
+  id        String          @id @default(cuid())
+  groupId   String
+  userId    String
+  role      GroupMemberRole @default(TESTER)
+  createdAt DateTime        @default(now())
+
+  group AppDistGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model OrgDistGroup {
+  id          String   @id @default(cuid())
+  name        String
+  orgId       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization  Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members       OrgGroupMember[]
+  apps          OrgGroupApp[]
+  releaseGroups ReleaseGroup[]
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model OrgGroupMember {
+  id        String          @id @default(cuid())
+  groupId   String
+  userId    String
+  role      GroupMemberRole @default(TESTER)
+  createdAt DateTime        @default(now())
+
+  group OrgDistGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model OrgGroupApp {
+  id        String   @id @default(cuid())
+  groupId   String
+  appId     String
+  createdAt DateTime @default(now())
+
+  group OrgDistGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  app   App          @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, appId])
+  @@index([groupId])
+  @@index([appId])
+}
+
+model ReleaseGroup {
+  id         String  @id @default(cuid())
+  releaseId  String
+  appGroupId String?
+  orgGroupId String?
+
+  release  Release       @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  appGroup AppDistGroup? @relation(fields: [appGroupId], references: [id], onDelete: Cascade)
+  orgGroup OrgDistGroup? @relation(fields: [orgGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, appGroupId])
+  @@unique([releaseId, orgGroupId])
+  @@index([releaseId])
+}
+
+enum GroupMemberRole {
+  MANAGER
+  TESTER
 }
