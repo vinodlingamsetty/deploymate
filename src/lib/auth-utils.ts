@@ -1,5 +1,4 @@
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
 
 /**
  * Hash a password using Argon2
@@ -71,6 +70,9 @@ export async function authenticateRequest(request: Request): Promise<{
   }
 
   const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+
+  // Dynamically import db to avoid bundling issues
+  const { db } = await import('@/lib/db')
 
   // Token format: dm_prefix_hash (e.g., dm_12345678_longhash)
   // We only store the hash in the database

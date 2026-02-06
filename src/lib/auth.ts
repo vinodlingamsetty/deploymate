@@ -1,7 +1,5 @@
 import NextAuth, { type DefaultSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { db } from '@/lib/db'
-import { verifyPassword } from '@/lib/auth-utils'
 
 declare module 'next-auth' {
   interface Session {
@@ -38,6 +36,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const email = credentials.email as string
         const password = credentials.password as string
+
+        // Dynamically import dependencies to avoid bundling issues
+        const { db } = await import('@/lib/db')
+        const { verifyPassword } = await import('@/lib/auth-utils')
 
         // Find user by email
         const user = await db.user.findUnique({
