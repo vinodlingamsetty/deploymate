@@ -57,5 +57,6 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Optional: Cursor AI
+# Cursor AI (but track rules.md)
 .cursor/
+!.cursor/rules.md
