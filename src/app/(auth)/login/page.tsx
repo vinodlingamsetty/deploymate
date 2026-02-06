@@ -176,6 +176,10 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
+
+            <p className="text-xs text-muted-foreground/80 text-center border border-dashed border-muted rounded-md p-2">
+              Dev login: <code className="font-mono">demo@deploymate.local</code> / <code className="font-mono">demo123</code>
+            </p>
           </form>
         )}
       </CardContent>

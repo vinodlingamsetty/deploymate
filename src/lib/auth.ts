@@ -34,8 +34,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        const email = credentials.email as string
+        const email = (credentials.email as string).trim().toLowerCase()
         const password = credentials.password as string
+
+        // Dummy login for development (remove before production)
+        const DUMMY_EMAIL = 'demo@deploymate.local'
+        const DUMMY_PASSWORD = 'demo123'
+        if (email === DUMMY_EMAIL && password === DUMMY_PASSWORD) {
+          return {
+            id: 'demo-user-id',
+            email: DUMMY_EMAIL,
+            name: 'Demo User',
+            image: null,
+            isSuperAdmin: false,
+          }
+        }
 
         // Dynamically import dependencies to avoid bundling issues
         const { db } = await import('@/lib/db')
