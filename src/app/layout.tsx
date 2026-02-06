@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Grotesk, Courier_Prime } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SessionProvider } from '@/components/providers/session-provider'
 import { Toaster } from '@/components/ui/sonner'
 
 const spaceGrotesk = Space_Grotesk({
@@ -35,16 +36,18 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${courierPrime.variable}`}
     >
       <body className={spaceGrotesk.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          storageKey="deploymate-theme"
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            storageKey="deploymate-theme"
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )
