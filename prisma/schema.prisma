@@ -42,6 +42,7 @@ model Organization {
   updatedAt DateTime @updatedAt
 
   memberships Membership[]
+  apps        App[]
 
   @@index([slug])
 }
@@ -66,4 +67,64 @@ enum Role {
   ADMIN
   MANAGER
   TESTER
+}
+
+// ============================================================
+// APPS
+// ============================================================
+
+model App {
+  id          String   @id @default(cuid())
+  name        String
+  bundleId    String?
+  platform    Platform
+  orgId       String
+  iconUrl     String?
+  iconKey     String?
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  releases     Release[]
+
+  @@unique([orgId, bundleId])
+  @@index([orgId])
+}
+
+enum Platform {
+  IOS
+  ANDROID
+}
+
+// ============================================================
+// RELEASES
+// ============================================================
+
+model Release {
+  id                String      @id @default(cuid())
+  appId             String
+  version           String
+  buildNumber       String
+  releaseType       ReleaseType @default(BETA)
+  releaseNotes      String?     @db.Text
+  fileKey           String
+  fileSize          Int
+  fileName          String
+  minOSVersion      String?
+  extractedBundleId String?
+  downloadCount     Int         @default(0)
+  createdAt         DateTime    @default(now())
+
+  app App @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@unique([appId, version, buildNumber])
+  @@index([appId])
+  @@index([createdAt])
+}
+
+enum ReleaseType {
+  ALPHA
+  BETA
+  RELEASE_CANDIDATE
 }
