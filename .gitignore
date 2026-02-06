@@ -60,3 +60,5 @@ Thumbs.db
 # Cursor AI (but track rules.md)
 .cursor/
 !.cursor/rules.md
+
+/src/generated/prisma
