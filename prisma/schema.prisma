@@ -25,9 +25,14 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  memberships     Membership[]
-  appGroupMembers AppGroupMember[]
-  orgGroupMembers OrgGroupMember[]
+  memberships         Membership[]
+  appGroupMembers     AppGroupMember[]
+  orgGroupMembers     OrgGroupMember[]
+  apiTokens           ApiToken[]
+  invitationsSent     Invitation[]  @relation("InvitationsSent")
+  invitationsReceived Invitation[]  @relation("InvitationsReceived")
+  downloadLogs        DownloadLog[]
+  feedback            Feedback[]
 
   @@index([email])
 }
@@ -46,6 +51,7 @@ model Organization {
   memberships Membership[]
   apps        App[]
   orgGroups   OrgDistGroup[]
+  invitations Invitation[]
 
   @@index([slug])
 }
@@ -123,6 +129,8 @@ model Release {
 
   app           App            @relation(fields: [appId], references: [id], onDelete: Cascade)
   releaseGroups ReleaseGroup[]
+  downloadLogs  DownloadLog[]
+  feedback      Feedback[]
 
   @@unique([appId, version, buildNumber])
   @@index([appId])
@@ -234,4 +242,101 @@ model ReleaseGroup {
 enum GroupMemberRole {
   MANAGER
   TESTER
+}
+
+// ============================================================
+// API TOKENS
+// ============================================================
+
+model ApiToken {
+  id          String            @id @default(cuid())
+  userId      String
+  name        String
+  tokenHash   String            @unique
+  tokenPrefix String
+  permissions TokenPermission[]
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+enum TokenPermission {
+  READ
+  WRITE
+  DELETE
+  ADMIN
+}
+
+// ============================================================
+// INVITATIONS
+// ============================================================
+
+model Invitation {
+  id          String           @id @default(cuid())
+  email       String
+  orgId       String
+  role        Role             @default(TESTER)
+  invitedById String
+  acceptedById String?
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  acceptedAt  DateTime?
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InvitationsSent", fields: [invitedById], references: [id])
+  acceptedBy   User?        @relation("InvitationsReceived", fields: [acceptedById], references: [id])
+
+  @@index([email])
+  @@index([token])
+  @@index([orgId])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model DownloadLog {
+  id        String   @id @default(cuid())
+  releaseId String
+  userId    String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([releaseId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  releaseId String
+  userId    String
+  rating    Int?
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([releaseId])
+  @@index([userId])
 }
