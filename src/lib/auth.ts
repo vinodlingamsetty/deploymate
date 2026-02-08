@@ -14,13 +14,48 @@ declare module 'next-auth' {
   }
 }
 
+// Auth.js v5 requires AUTH_SECRET or NEXTAUTH_SECRET for JWT/session signing.
+// Without it, /api/auth/error shows "There is a problem with the server configuration."
+const DEV_FALLBACK_SECRET = 'dev-only-insecure-secret-do-not-use-in-production'
+
+function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+
+  if (secret) {
+    return secret
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      '[NextAuth] AUTH_SECRET or NEXTAUTH_SECRET is not set. ' +
+      'Set one of these environment variables in .env in the project root ' +
+      '(same directory as package.json) and restart the server. ' +
+      'Generate a value with: openssl rand -base64 32'
+    )
+  }
+
+  // Development fallback — allows the app to start without .env but warns loudly
+  console.warn(
+    '\x1b[33m%s\x1b[0m', // yellow
+    '[NextAuth] WARNING: AUTH_SECRET / NEXTAUTH_SECRET is not set. ' +
+    'Using an insecure dev-only fallback. Login will work but sessions ' +
+    'will not survive restarts. Set AUTH_SECRET in .env and restart.'
+  )
+  return DEV_FALLBACK_SECRET
+}
+
+const authSecret = getAuthSecret()
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: authSecret,
+  trustHost: true,
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: '/login',
+    error: '/auth-error',
   },
   providers: [
     CredentialsProvider({
