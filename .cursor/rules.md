@@ -687,12 +687,22 @@ Before proceeding, I need clarification:
 
 | Document | Purpose |
 |----------|---------|
-| `deploymate-requirements-v2.md` | Architecture, API spec, database schema |
-| `DeployMate-Specification.md` | UI wireframes, layouts, interactions |
+| `docs/PROGRESS.md` | **Implementation checklist — mark `[x]` when a feature is done** |
+| `docs/deploymate-requirements.md` | Architecture, API spec, database schema |
+| `docs/DeployMate-Specification.md` | UI wireframes, layouts, interactions |
+| `docs/technical-implementation-details.md` | iOS OTA, APK install, binary parsing details |
 | `.cursor/rules.md` (this file) | AI coding rules |
-| `packages/database/prisma/schema.prisma` | Database models |
+| `prisma/schema.prisma` | Database models |
 
 **ALWAYS check these before implementing anything.**
+
+### Progress Tracking
+
+After completing any feature, update `docs/PROGRESS.md`:
+1. Find the relevant checkbox item
+2. Change `- [ ]` to `- [x]`
+3. Update the Quick Stats table at the bottom if needed
+4. This file is shared between Cursor and Claude Code — keep it in sync
 
 ---
 
