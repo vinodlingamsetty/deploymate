@@ -1,8 +1,11 @@
 # DeployMate - Implementation Progress
 
-> **How to use:** Mark `[x]` when a feature is fully implemented and working.
-> Both Claude Code and Cursor can read and update this file.
-> Tell your AI tool: _"Check PROGRESS.md and work on the next unchecked item"_
+> **Single source of truth** for all implementation progress.
+> Both Claude Code and Cursor read and update this file.
+>
+> **When a feature is done:** change `- [ ]` to `- [x]` and update the Quick Stats table.
+> **When a feature is added/removed/changed:** update this file first. Spec docs stay as-is.
+> **Quick start:** tell your AI tool _"Check docs/PROGRESS.md and work on the next unchecked item"_
 
 ---
 
@@ -33,8 +36,8 @@
 - [x] Auth error page (`/auth-error`) with clear error messages
 - [x] Dev fallback secret for missing AUTH_SECRET
 - [x] Error, loading, and not-found pages
-- [ ] First-user setup page (`/setup`) - redirect when DB has no users, auto-set isSuperAdmin
-- [ ] Auth middleware (`src/middleware.ts`) - protect dashboard routes, redirect unauthenticated users
+- [x] First-user setup page (`/setup`) - redirect when DB has no users, auto-set isSuperAdmin
+- [x] Auth middleware (`src/middleware.ts`) - protect dashboard routes, redirect unauthenticated users
 - [ ] Invitation acceptance flow on `/register?token=xxx` (pre-fill email, add to org)
 
 ---
@@ -332,7 +335,7 @@
 
 | Category | Done | Total | % |
 |----------|------|-------|---|
-| Phase 1: Foundation | 16 | 19 | 84% |
+| Phase 1: Foundation | 20 | 23 | 87% |
 | Phase 2: Layout & Navigation | 0 | 12 | 0% |
 | Phase 3: Dashboard & Apps | 0 | 22 | 0% |
 | Phase 4: Releases | 0 | 16 | 0% |
@@ -343,8 +346,8 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **16** | **172** | **9%** |
+| **TOTAL** | **20** | **176** | **11%** |
 
 ---
 
-_Last updated: 2026-02-08_
+_Last updated: 2026-02-09_

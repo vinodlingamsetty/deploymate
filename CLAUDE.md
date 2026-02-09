@@ -15,14 +15,19 @@ DeployMate is an open-source, self-hosted platform for distributing beta iOS (.i
 | `.cursor/rules.md` | Coding patterns, TypeScript rules, component templates |
 | `prisma/schema.prisma` | Database models |
 
-## Progress Tracking
+## Progress Tracking (MANDATORY)
 
-After completing any feature:
+`docs/PROGRESS.md` is the **single source of truth** for what's implemented and what's remaining.
+
+**After completing any feature:**
 1. Read `docs/PROGRESS.md`
-2. Find the relevant checkbox item
-3. Change `- [ ]` to `- [x]`
-4. Update the Quick Stats table at the bottom
-5. This file is shared between Claude Code and Cursor — keep it in sync
+2. Find the relevant checkbox item and change `- [ ]` to `- [x]`
+3. Update the Quick Stats table counts at the bottom
+
+**When a feature is added, removed, or changed:**
+1. Update `docs/PROGRESS.md` first — add new `- [ ]` items or remove obsolete ones
+2. Do NOT update the spec docs (they are the original reference and stay as-is)
+3. This file is shared between Claude Code and Cursor — always keep it current
 
 ## Tech Stack
 

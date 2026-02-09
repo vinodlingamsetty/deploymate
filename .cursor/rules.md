@@ -696,13 +696,19 @@ Before proceeding, I need clarification:
 
 **ALWAYS check these before implementing anything.**
 
-### Progress Tracking
+### Progress Tracking (MANDATORY)
 
-After completing any feature, update `docs/PROGRESS.md`:
-1. Find the relevant checkbox item
-2. Change `- [ ]` to `- [x]`
-3. Update the Quick Stats table at the bottom if needed
-4. This file is shared between Cursor and Claude Code — keep it in sync
+`docs/PROGRESS.md` is the **single source of truth** for what's implemented and what's remaining.
+
+**After completing any feature:**
+1. Read `docs/PROGRESS.md`
+2. Find the relevant checkbox item and change `- [ ]` to `- [x]`
+3. Update the Quick Stats table counts at the bottom
+
+**When a feature is added, removed, or changed:**
+1. Update `docs/PROGRESS.md` first — add new `- [ ]` items or remove obsolete ones
+2. Do NOT update the spec docs (they are the original reference and stay as-is)
+3. This file is shared between Cursor and Claude Code — always keep it current
 
 ---
 
