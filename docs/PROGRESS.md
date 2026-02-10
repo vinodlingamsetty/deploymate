@@ -149,10 +149,10 @@
 
 ## Phase 4b: API + Storage Foundation
 
-- [ ] Upload URL API endpoint (`POST /api/v1/apps/:appId/releases/upload-url`)
-- [ ] Create release API endpoint (`POST /api/v1/apps/:appId/releases`)
-- [ ] IPA parser - extract: bundleId, version, buildNumber, appName, minOSVersion, supportedDevices, provisioningProfile, icon
-- [ ] APK parser - extract: packageName, versionName, versionCode, appName, minSdkVersion, targetSdkVersion, permissions, icon
+- [x] Upload URL API endpoint (`POST /api/v1/apps/:appId/releases/upload-url`)
+- [x] Create release API endpoint (`POST /api/v1/apps/:appId/releases`)
+- [x] IPA parser - extract: bundleId, version, buildNumber, appName, minOSVersion, supportedDevices, provisioningProfile, icon
+- [x] APK parser - extract: packageName, versionName, versionCode, appName, minSdkVersion, targetSdkVersion, permissions, icon
 
 ---
 
@@ -370,7 +370,7 @@
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
 | Phase 3: Dashboard & Apps | 22 | 22 | 100% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
-| Phase 4b: API + Storage | 0 | 4 | 0% |
+| Phase 4b: API + Storage | 4 | 4 | 100% |
 | Phase 4c: Download & Install | 0 | 6 | 0% |
 | Phase 5: Distribution Groups | 0 | 17 | 0% |
 | Phase 6: Organizations & Invitations | 0 | 13 | 0% |
@@ -379,7 +379,7 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **63** | **179** | **35%** |
+| **TOTAL** | **67** | **179** | **37%** |
 
 ---
 
