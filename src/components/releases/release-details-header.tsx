@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Download } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { InstallButton } from '@/components/releases/install-button'
 import type { MockRelease, Platform } from '@/types/app'
 import { getReleaseTypeLabel, RELEASE_TYPE_COLORS } from '@/types/app'
 
@@ -12,18 +13,17 @@ interface ReleaseDetailsHeaderProps {
   appName: string
   appId: string
   platform: Platform
+  otaToken?: string
 }
 
 export function ReleaseDetailsHeader({
   release,
   appName,
   appId,
+  platform,
+  otaToken,
 }: ReleaseDetailsHeaderProps) {
   const colors = RELEASE_TYPE_COLORS[release.releaseType]
-
-  function handleDownload() {
-    console.log('Download release:', release.id)
-  }
 
   return (
     <div className="flex items-start gap-3 sm:items-center">
@@ -58,16 +58,14 @@ export function ReleaseDetailsHeader({
         </div>
       </div>
 
-      {/* Download button — visible on all screen sizes */}
-      <Button
+      {/* Install / Download button */}
+      <InstallButton
+        releaseId={release.id}
+        platform={platform}
+        otaToken={otaToken}
+        colors={colors}
         className="shrink-0"
-        style={{ backgroundColor: colors.bg, color: colors.text }}
-        onClick={handleDownload}
-        aria-label={`Download v${release.version}`}
-      >
-        <Download className="size-4 sm:mr-2" aria-hidden="true" />
-        <span className="hidden sm:inline">Download Build</span>
-      </Button>
+      />
     </div>
   )
 }

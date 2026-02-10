@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { MOCK_APPS, MOCK_RELEASES } from '@/lib/mock-data'
 import { ReleaseDetailsContent } from '@/components/releases/release-details-content'
+import { generateOtaToken } from '@/lib/ota-token'
 
 interface ReleaseDetailsPageProps {
   params: { id: string }
@@ -13,12 +14,15 @@ export default async function ReleaseDetailsPage({ params }: ReleaseDetailsPageP
   const app = MOCK_APPS.find((a) => a.id === release.appId)
   if (!app) notFound()
 
+  const otaToken = app.platform === 'IOS' ? generateOtaToken(release.id) : undefined
+
   return (
     <ReleaseDetailsContent
       release={release}
       appName={app.name}
       appId={app.id}
       platform={app.platform}
+      otaToken={otaToken}
     />
   )
 }

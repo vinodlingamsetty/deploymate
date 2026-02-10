@@ -13,6 +13,7 @@ interface ReleaseDetailsContentProps {
   appName: string
   appId: string
   platform: Platform
+  otaToken?: string
 }
 
 export function ReleaseDetailsContent({
@@ -20,6 +21,7 @@ export function ReleaseDetailsContent({
   appName,
   appId,
   platform,
+  otaToken,
 }: ReleaseDetailsContentProps) {
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -32,6 +34,7 @@ export function ReleaseDetailsContent({
         appName={appName}
         appId={appId}
         platform={platform}
+        otaToken={otaToken}
       />
 
       <div className="mt-6">

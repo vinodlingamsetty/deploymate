@@ -4,14 +4,18 @@ import { authConfig } from '@/lib/auth.config'
 
 const { auth } = NextAuth(authConfig)
 
-const publicPaths = ['/login', '/register', '/setup', '/auth-error']
+const publicPaths = ['/login', '/register', '/setup', '/auth-error', '/install']
+
+const PUBLIC_API_PATTERNS = [
+  /^\/api\/v1\/releases\/[^/]+\/manifest$/,
+]
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  const isPublic = publicPaths.some(
-    (p) => pathname === p || pathname.startsWith(p + '/')
-  )
+  const isPublic =
+    publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
+    PUBLIC_API_PATTERNS.some((re) => re.test(pathname))
 
   // Redirect authenticated users away from login to dashboard
   if (req.auth && pathname === '/login') {

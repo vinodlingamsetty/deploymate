@@ -158,12 +158,12 @@
 
 ## Phase 4c: Download & Install
 
-- [ ] Download endpoint (`GET /api/v1/releases/:id/download`) with signed URLs
-- [ ] iOS OTA manifest generation endpoint (`GET /api/v1/releases/:id/manifest`)
-- [ ] iOS install button (itms-services:// protocol, Safari detection)
-- [ ] Android install button (direct APK download)
-- [ ] Public install page (`/install/[releaseId]`)
-- [ ] Download logging and count increment
+- [x] Download endpoint (`GET /api/v1/releases/:id/download`) with signed URLs
+- [x] iOS OTA manifest generation endpoint (`GET /api/v1/releases/:id/manifest`)
+- [x] iOS install button (itms-services:// protocol, Safari detection)
+- [x] Android install button (direct APK download)
+- [x] Public install page (`/install/[releaseId]`)
+- [x] Download logging and count increment
 
 ---
 
@@ -371,7 +371,7 @@
 | Phase 3: Dashboard & Apps | 22 | 22 | 100% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
 | Phase 4b: API + Storage | 4 | 4 | 100% |
-| Phase 4c: Download & Install | 0 | 6 | 0% |
+| Phase 4c: Download & Install | 6 | 6 | 100% |
 | Phase 5: Distribution Groups | 0 | 17 | 0% |
 | Phase 6: Organizations & Invitations | 0 | 13 | 0% |
 | Phase 7: Settings | 0 | 17 | 0% |
@@ -379,7 +379,7 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **67** | **179** | **37%** |
+| **TOTAL** | **73** | **179** | **41%** |
 
 ---
 
