@@ -60,7 +60,10 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
   const releaseType = watch('releaseType')
 
   function handleIconFile(file: File) {
-    if (!file.type.startsWith('image/')) return
+    const SAFE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+    if (!SAFE_TYPES.includes(file.type)) return
+    const MAX_SIZE = 2 * 1024 * 1024
+    if (file.size > MAX_SIZE) return
     const url = URL.createObjectURL(file)
     setIconPreview(url)
   }
@@ -91,8 +94,8 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  function onSubmit(data: NewAppFormValues) {
-    console.log('New app:', { ...data, iconPreview })
+  function onSubmit(_data: NewAppFormValues) {
+    // TODO: Call API to create app
     handleClose()
   }
 

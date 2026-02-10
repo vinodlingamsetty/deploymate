@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
@@ -73,12 +73,21 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
     signOut({ callbackUrl: '/login' })
   }
 
+  // Clear the debounce timer on unmount to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
     setSearchValue(value)
 
     if (!isDashboard) return
 
+    // State updates immediately for responsive UX; URL updates after 300ms debounce
+    // to avoid excessive navigation during typing
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())

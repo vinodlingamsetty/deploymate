@@ -34,7 +34,7 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
 
-  const canDelete = deleteConfirmName === app.name
+  const canDelete = deleteConfirmName.trim() === app.name
 
   function handleDelete() {
     if (!canDelete) return
@@ -72,7 +72,7 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
 
         {/* App info */}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold leading-tight sm:text-2xl">
+          <h1 className="truncate text-xl font-bold leading-tight sm:text-2xl" title={app.name}>
             {app.name}
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2">

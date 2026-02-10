@@ -31,7 +31,7 @@ export function AppCard({ app }: AppCardProps) {
             {app.platform === 'IOS' ? '🍎' : '🤖'}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-semibold leading-tight">{app.name}</h3>
+            <h3 className="truncate font-semibold leading-tight" title={app.name}>{app.name}</h3>
             <div className="mt-1 flex flex-wrap gap-1">
               <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
                 {getPlatformLabel(app.platform)}

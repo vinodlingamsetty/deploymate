@@ -39,8 +39,7 @@ export function AppListRow({ app }: AppListRowProps) {
       onClick={handleRowClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      role="row"
-      aria-label={`${app.name} — ${getPlatformLabel(app.platform)}`}
+      aria-label={`Open ${app.name}`}
     >
       {/* Icon + Name */}
       <td className="px-4 py-3">
@@ -51,7 +50,7 @@ export function AppListRow({ app }: AppListRowProps) {
           >
             {app.platform === 'IOS' ? '🍎' : '🤖'}
           </span>
-          <span className="font-medium">{app.name}</span>
+          <span className="font-medium" title={app.name}>{app.name}</span>
         </div>
       </td>
 

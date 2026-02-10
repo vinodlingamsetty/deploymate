@@ -61,7 +61,8 @@ async function DashboardContent({ searchParams }: DashboardPageProps) {
 
   const { org, platform, type, view, search } = searchParams
 
-  const filteredApps = filterApps(MOCK_APPS, { org, platform, type, search })
+  const sanitizedSearch = search?.slice(0, 256)
+  const filteredApps = filterApps(MOCK_APPS, { org, platform, type, search: sanitizedSearch })
 
   const isListView = view === 'list'
   const hasActiveFilters = Boolean(org || platform || type || search)
@@ -81,6 +82,10 @@ async function DashboardContent({ searchParams }: DashboardPageProps) {
         currentType={type ?? ''}
         currentView={view ?? 'grid'}
       />
+
+      <p className="sr-only" aria-live="polite" role="status">
+        {filteredApps.length} {filteredApps.length === 1 ? 'app' : 'apps'} found
+      </p>
 
       {filteredApps.length === 0 ? (
         <EmptyState hasActiveFilters={hasActiveFilters} />
