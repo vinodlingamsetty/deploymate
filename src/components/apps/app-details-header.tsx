@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { MockApp } from '@/types/app'
 import { getPlatformLabel, getReleaseTypeLabel, RELEASE_TYPE_COLORS } from '@/types/app'
+import { UploadReleaseSheet } from '@/components/apps/upload-release-sheet'
 
 interface AppDetailsHeaderProps {
   app: MockApp
@@ -33,6 +34,7 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
   const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [uploadSheetOpen, setUploadSheetOpen] = useState(false)
 
   const canDelete = deleteConfirmName.trim() === app.name
 
@@ -97,7 +99,10 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
 
         {/* Desktop-only actions */}
         <div className="hidden items-center gap-2 md:flex">
-          <Button disabled aria-label="Upload new release (coming soon)">
+          <Button
+            aria-label="Upload new release"
+            onClick={() => setUploadSheetOpen(true)}
+          >
             <Upload className="mr-2 size-4" aria-hidden="true" />
             Upload Release
           </Button>
@@ -120,6 +125,14 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Upload release sheet */}
+      <UploadReleaseSheet
+        open={uploadSheetOpen}
+        onOpenChange={setUploadSheetOpen}
+        platform={app.platform}
+        appName={app.name}
+      />
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={handleDialogClose}>

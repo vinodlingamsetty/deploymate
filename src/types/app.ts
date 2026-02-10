@@ -26,6 +26,13 @@ export interface MockRelease {
   fileSize: number
   downloadCount: number
   createdAt: string
+  minOSVersion: string | null
+}
+
+export interface MockDistributionGroup {
+  id: string
+  name: string
+  memberCount: number
 }
 
 export const RELEASE_TYPE_LABELS: Record<ReleaseTypeName, string> = {

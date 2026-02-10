@@ -130,28 +130,34 @@
 
 ---
 
-## Phase 4: Releases
+## Phase 4a: Release UI (Mock)
 
-### Upload Release Flow
-- [ ] Upload release sheet (multi-step, slides from right)
-  - [ ] Step 1: Release notes textarea + drag & drop file upload (.ipa/.apk)
-  - [ ] Step 2: Select distribution groups (checkboxes, at least one required)
-  - [ ] Publish / Back / Cancel buttons
-- [ ] Upload URL API endpoint (`POST /api/v1/apps/:appId/releases/upload-url`)
-- [ ] Create release API endpoint (`POST /api/v1/apps/:appId/releases`)
+### Upload Release Sheet
+- [x] Upload release sheet (multi-step, slides from right)
+  - [x] Step 1: Release notes textarea + drag & drop file upload (.ipa/.apk)
+  - [x] Step 2: Select distribution groups (checkboxes, at least one required)
+  - [x] Publish / Back / Cancel buttons
 
 ### Release Details Page (`/releases/[id]`)
-- [ ] Header: back button, app name, version, release type badge, download button
-- [ ] Stats: 2x2 grid (Release Date, Downloads, Build Size, Min OS Version)
-- [ ] Release notes section
-- [ ] Distribution groups section
-- [ ] Mobile: download button visible on all screen sizes
+- [x] Header: back button, app name, version, release type badge, download button
+- [x] Stats: 2x2 grid (Release Date, Downloads, Build Size, Min OS Version)
+- [x] Release notes section
+- [x] Distribution groups section
+- [x] Mobile: download button visible on all screen sizes
 
-### Binary Parsers
+---
+
+## Phase 4b: API + Storage Foundation
+
+- [ ] Upload URL API endpoint (`POST /api/v1/apps/:appId/releases/upload-url`)
+- [ ] Create release API endpoint (`POST /api/v1/apps/:appId/releases`)
 - [ ] IPA parser - extract: bundleId, version, buildNumber, appName, minOSVersion, supportedDevices, provisioningProfile, icon
 - [ ] APK parser - extract: packageName, versionName, versionCode, appName, minSdkVersion, targetSdkVersion, permissions, icon
 
-### Download & Install
+---
+
+## Phase 4c: Download & Install
+
 - [ ] Download endpoint (`GET /api/v1/releases/:id/download`) with signed URLs
 - [ ] iOS OTA manifest generation endpoint (`GET /api/v1/releases/:id/manifest`)
 - [ ] iOS install button (itms-services:// protocol, Safari detection)
@@ -363,7 +369,9 @@
 | Phase 1: Foundation | 20 | 23 | 87% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
 | Phase 3: Dashboard & Apps | 22 | 22 | 100% |
-| Phase 4: Releases | 0 | 16 | 0% |
+| Phase 4a: Release UI | 9 | 9 | 100% |
+| Phase 4b: API + Storage | 0 | 4 | 0% |
+| Phase 4c: Download & Install | 0 | 6 | 0% |
 | Phase 5: Distribution Groups | 0 | 17 | 0% |
 | Phase 6: Organizations & Invitations | 0 | 13 | 0% |
 | Phase 7: Settings | 0 | 17 | 0% |
@@ -371,7 +379,7 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **54** | **176** | **31%** |
+| **TOTAL** | **63** | **179** | **35%** |
 
 ---
 

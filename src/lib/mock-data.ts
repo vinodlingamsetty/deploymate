@@ -1,4 +1,4 @@
-import type { MockApp, MockRelease } from '@/types/app'
+import type { MockApp, MockDistributionGroup, MockRelease } from '@/types/app'
 
 export const MOCK_APPS: MockApp[] = [
   // Finance org
@@ -103,6 +103,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 18_432_000,
     downloadCount: 312,
     createdAt: '2026-01-28T10:00:00Z',
+    minOSVersion: 'iOS 15.0',
   },
   {
     id: 'rel-ft-ios-2',
@@ -115,6 +116,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 17_920_000,
     downloadCount: 0,
     createdAt: '2026-01-10T14:00:00Z',
+    minOSVersion: 'iOS 15.0',
   },
   {
     id: 'rel-ft-ios-3',
@@ -126,6 +128,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 16_384_000,
     downloadCount: 0,
     createdAt: '2025-12-20T09:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
   // FinanceTracker Android
   {
@@ -139,6 +142,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 22_528_000,
     downloadCount: 198,
     createdAt: '2026-01-25T14:00:00Z',
+    minOSVersion: 'Android 10.0',
   },
   {
     id: 'rel-ft-android-2',
@@ -151,6 +155,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 21_504_000,
     downloadCount: 0,
     createdAt: '2026-01-05T12:00:00Z',
+    minOSVersion: 'Android 8.0',
   },
   // SalesPulse CRM
   {
@@ -164,6 +169,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 14_336_000,
     downloadCount: 87,
     createdAt: '2026-02-01T09:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
   {
     id: 'rel-crm-2',
@@ -176,6 +182,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 13_824_000,
     downloadCount: 0,
     createdAt: '2026-01-15T11:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
   // Sales Reports
   {
@@ -189,6 +196,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 19_456_000,
     downloadCount: 540,
     createdAt: '2026-01-30T11:00:00Z',
+    minOSVersion: 'iOS 15.0',
   },
   {
     id: 'rel-sr-2',
@@ -200,6 +208,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 18_944_000,
     downloadCount: 0,
     createdAt: '2026-01-18T15:00:00Z',
+    minOSVersion: 'iOS 15.0',
   },
   {
     id: 'rel-sr-3',
@@ -211,6 +220,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 18_432_000,
     downloadCount: 0,
     createdAt: '2026-01-08T10:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
   // CampaignHub
   {
@@ -223,6 +233,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 12_288_000,
     downloadCount: 52,
     createdAt: '2026-02-03T16:00:00Z',
+    minOSVersion: 'Android 10.0',
   },
   {
     id: 'rel-ch-2',
@@ -234,6 +245,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 11_776_000,
     downloadCount: 0,
     createdAt: '2026-01-22T13:00:00Z',
+    minOSVersion: 'Android 8.0',
   },
   // BrandKit
   {
@@ -247,6 +259,7 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 15_360_000,
     downloadCount: 34,
     createdAt: '2026-02-05T08:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
   {
     id: 'rel-bk-2',
@@ -258,5 +271,12 @@ export const MOCK_RELEASES: MockRelease[] = [
     fileSize: 14_848_000,
     downloadCount: 0,
     createdAt: '2026-01-27T09:00:00Z',
+    minOSVersion: 'iOS 14.0',
   },
+]
+
+export const MOCK_DISTRIBUTION_GROUPS: MockDistributionGroup[] = [
+  { id: 'group-beta', name: 'Beta Testers', memberCount: 12 },
+  { id: 'group-qa', name: 'QA Team', memberCount: 8 },
+  { id: 'group-internal', name: 'Internal Team', memberCount: 5 },
 ]

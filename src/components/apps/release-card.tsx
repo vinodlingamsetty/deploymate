@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Calendar, Download } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -78,10 +79,10 @@ export function ReleaseCard({ release }: ReleaseCardProps) {
             <Button
               variant="outline"
               size="sm"
-              disabled
-              aria-label={`View details for v${release.version} (coming soon)`}
+              asChild
+              aria-label={`View details for v${release.version}`}
             >
-              View Details
+              <Link href={`/releases/${release.id}`}>View Details</Link>
             </Button>
           </div>
         </div>
