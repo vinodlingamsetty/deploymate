@@ -19,7 +19,9 @@ export default function AuthError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Auth route error:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Auth route error:', error)
+    }
   }, [error])
 
   return (

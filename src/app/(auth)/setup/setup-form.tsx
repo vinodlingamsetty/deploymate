@@ -78,10 +78,10 @@ export function SetupForm() {
         }),
       })
 
-      const json = await res.json().catch(() => ({}))
+      const json = await res.json().catch(() => ({})) as { error?: { message?: string } }
 
       if (!res.ok) {
-        setSubmitError(json.error ?? 'Setup failed. Please try again.')
+        setSubmitError(json.error?.message ?? 'Setup failed. Please try again.')
         return
       }
 

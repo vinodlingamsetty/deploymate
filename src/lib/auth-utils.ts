@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto'
 import { auth } from '@/lib/auth'
 
 /**
@@ -29,6 +30,18 @@ export async function verifyPassword(hashValue: string, password: string): Promi
 }
 
 /**
+ * Hash an API token using HMAC-SHA256 for deterministic, fast lookup.
+ * Unlike Argon2, HMAC is safe here because API tokens are high-entropy random values.
+ */
+export function hashApiToken(token: string): string {
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+  if (!secret) {
+    throw new Error('AUTH_SECRET is not set — cannot hash API token')
+  }
+  return createHmac('sha256', secret).update(token).digest('hex')
+}
+
+/**
  * Get the current session on the server
  * Use this in Server Components and API routes
  */
@@ -52,11 +65,14 @@ export async function authenticateRequest(request: Request): Promise<{
   const session = await auth()
   
   if (session?.user) {
+    if (!session.user.email) {
+      return { authenticated: false, user: null }
+    }
     return {
       authenticated: true,
       user: {
         id: session.user.id,
-        email: session.user.email!,
+        email: session.user.email,
         isSuperAdmin: session.user.isSuperAdmin,
       },
     }
@@ -75,8 +91,8 @@ export async function authenticateRequest(request: Request): Promise<{
   const { db } = await import('@/lib/db')
 
   // Token format: dm_prefix_hash (e.g., dm_12345678_longhash)
-  // We only store the hash in the database
-  const tokenHash = await hashPassword(token)
+  // We only store the HMAC-SHA256 hash in the database
+  const tokenHash = hashApiToken(token)
 
   const apiToken = await db.apiToken.findUnique({
     where: { tokenHash },

@@ -13,7 +13,6 @@ import {
   Sun,
 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,13 +35,15 @@ interface TopHeaderProps {
 
 function getUserInitials(user: TopHeaderProps['user']): string {
   if (user.name) {
-    const parts = user.name.trim().split(/\s+/)
-    if (parts.length >= 2) {
+    const parts = user.name.trim().split(/\s+/).filter(Boolean)
+    if (parts.length >= 2 && parts[0].length > 0 && parts[1].length > 0) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
     }
-    return parts[0][0].toUpperCase()
+    if (parts.length > 0 && parts[0].length > 0) {
+      return parts[0][0].toUpperCase()
+    }
   }
-  if (user.email) {
+  if (user.email && user.email.length > 0) {
     return user.email[0].toUpperCase()
   }
   return '?'
@@ -60,11 +61,7 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
   }
 
   return (
-    <header
-      className={cn(
-        'bg-background fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b px-4 lg:px-6'
-      )}
-    >
+    <header className="bg-background fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b px-4 lg:px-6">
       {/* Left section */}
       <div className="flex items-center gap-3">
         <Button
@@ -106,8 +103,10 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
           onClick={handleThemeToggle}
           aria-label="Toggle theme"
         >
-          <Sun className="size-5 scale-100 rotate-0 transition-transform dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute size-5 scale-0 rotate-90 transition-transform dark:scale-100 dark:rotate-0" />
+          <span className="relative">
+            <Sun className="size-5 scale-100 rotate-0 transition-transform dark:scale-0 dark:-rotate-90" />
+            <Moon className="absolute inset-0 size-5 scale-0 rotate-90 transition-transform dark:scale-100 dark:rotate-0" />
+          </span>
         </Button>
 
         {/* Notifications bell */}
@@ -147,7 +146,7 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
               <LogOut className="size-4" />
               Sign Out
             </DropdownMenuItem>

@@ -87,7 +87,8 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div 
+              <div
+                id="login-error"
                 className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20"
                 role="alert"
               >
@@ -177,9 +178,11 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <p className="text-xs text-muted-foreground/80 text-center border border-dashed border-muted rounded-md p-2">
-              Dev login: <code className="font-mono">demo@deploymate.local</code> / <code className="font-mono">demo123</code>
-            </p>
+            {process.env.NODE_ENV === 'development' && (
+              <p className="text-xs text-muted-foreground/80 text-center border border-dashed border-muted rounded-md p-2">
+                Dev login: <code className="font-mono">demo@deploymate.local</code> / <code className="font-mono">demo123</code>
+              </p>
+            )}
           </form>
         )}
       </CardContent>

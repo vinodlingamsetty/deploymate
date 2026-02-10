@@ -6,6 +6,7 @@ const setupBodySchema = z.object({
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be 128 characters or less')
     .refine((val) => /[a-zA-Z]/.test(val), 'Password must contain at least one letter')
     .refine((val) => /\d/.test(val), 'Password must contain at least one number'),
   firstName: z.string().max(50, 'First name must be 50 characters or less').optional(),
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       const firstMessage =
         parsed.error.issues.map((i) => (typeof i.message === 'string' ? i.message : undefined)).find(Boolean) ??
         'Validation failed'
-      return NextResponse.json({ error: firstMessage }, { status: 400 })
+      return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: firstMessage } }, { status: 400 })
     }
 
     const { email, password, firstName, lastName } = parsed.data
@@ -30,32 +31,39 @@ export async function POST(request: Request) {
     const { db } = await import('@/lib/db')
     const { hashPassword } = await import('@/lib/auth-utils')
 
-    // Guard: setup is only allowed when no users exist
-    const userCount = await db.user.count()
-    if (userCount > 0) {
+    const passwordHash = await hashPassword(password)
+
+    // Wrap count-check + create in a transaction to prevent TOCTOU race condition
+    const result = await db.$transaction(async (tx) => {
+      const userCount = await tx.user.count()
+      if (userCount > 0) {
+        return { alreadySetup: true }
+      }
+      await tx.user.create({
+        data: {
+          email: emailLower,
+          passwordHash,
+          firstName: firstName?.trim() || null,
+          lastName: lastName?.trim() || null,
+          isSuperAdmin: true,
+        },
+      })
+      return { alreadySetup: false }
+    })
+
+    if (result.alreadySetup) {
       return NextResponse.json(
-        { error: 'Setup already completed. Please use the login page.' },
+        { error: { code: 'SETUP_COMPLETE', message: 'Setup already completed. Please use the login page.' } },
         { status: 403 }
       )
     }
 
-    const passwordHash = await hashPassword(password)
-
-    await db.user.create({
-      data: {
-        email: emailLower,
-        passwordHash,
-        firstName: firstName?.trim() || null,
-        lastName: lastName?.trim() || null,
-        isSuperAdmin: true,
-      },
-    })
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ data: { success: true }, meta: {} })
   } catch (err) {
-    console.error('Setup error:', err)
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Setup error:', message)
     return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
+      { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong. Please try again.' } },
       { status: 500 }
     )
   }

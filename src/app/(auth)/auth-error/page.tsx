@@ -12,18 +12,24 @@ import {
 } from '@/components/ui/card'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  Configuration:
-    'Auth configuration error. Ensure AUTH_SECRET or NEXTAUTH_SECRET is set in .env ' +
-    'in the project root (same directory as package.json) and restart the server.',
+  Configuration: 'An authentication configuration error occurred. Please contact the administrator.',
   AccessDenied: 'Access denied. You do not have permission to sign in.',
   Verification: 'The verification link has expired or has already been used.',
   Default: 'An authentication error occurred. Please try again.',
+}
+
+const DEV_ERROR_MESSAGES: Record<string, string> = {
+  Configuration:
+    'Auth configuration error. Ensure AUTH_SECRET or NEXTAUTH_SECRET is set in .env ' +
+    'in the project root (same directory as package.json) and restart the server.',
 }
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams()
   const errorType = searchParams.get('error') ?? 'Default'
   const message = ERROR_MESSAGES[errorType] ?? ERROR_MESSAGES.Default
+  const isDev = process.env.NODE_ENV === 'development'
+  const devMessage = isDev ? (DEV_ERROR_MESSAGES[errorType] ?? null) : null
 
   return (
     <Card className="w-full max-w-[400px] backdrop-blur-sm bg-background/95 shadow-2xl border-white/10">
@@ -36,10 +42,13 @@ export default function AuthErrorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20">
-          {message}
+        <div
+          className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20"
+          role="alert"
+        >
+          {devMessage ?? message}
         </div>
-        {errorType === 'Configuration' && (
+        {isDev && errorType === 'Configuration' && (
           <pre className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3 overflow-x-auto">
 {`# In your .env file:
 AUTH_SECRET="$(openssl rand -base64 32)"

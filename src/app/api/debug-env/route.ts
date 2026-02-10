@@ -20,6 +20,5 @@ export async function GET() {
     AUTH_SECRET: process.env.AUTH_SECRET ? 'set' : 'not set',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'set' : 'not set',
     NEXTAUTH_URL: process.env.NEXTAUTH_URL ? 'set' : 'not set',
-    cwd: process.cwd(),
   })
 }

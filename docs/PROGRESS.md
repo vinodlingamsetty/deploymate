@@ -62,6 +62,31 @@
 - [x] Mobile sidebar as Sheet overlay with backdrop
 - [x] Skip-to-content accessibility link
 
+### Code Review Fixes (Phase 1 & 2)
+- [x] A-C1: Dummy dev login gated behind `NODE_ENV === 'development'`
+- [x] A-C2: `hashApiToken()` via HMAC-SHA256 added; broken Argon2 API token lookup fixed
+- [x] A-C3: `cwd` field removed from debug-env route (filesystem path leak)
+- [x] A-W1: Setup endpoint count+create wrapped in `$transaction` (TOCTOU race fix)
+- [x] A-W2: All auth API routes normalized to `{ error: { code, message } }` format
+- [x] A-W3: `session.user.email!` non-null assertion replaced with null check
+- [x] A-W4: Password schema `.max(128)` added to both register and setup routes (HashDoS prevention)
+- [x] A-W5: `api/debug-env` removed from middleware matcher exclusion
+- [x] A-W6: `console.error` limited to error message string only, not full object
+- [x] B-C1: Dev credentials hint in login page gated behind `NODE_ENV === 'development'`
+- [x] B-C2: Config error details in auth-error page gated behind `NODE_ENV`; generic message in prod
+- [x] B-W1: `id="login-error"` added to error div (fixes broken `aria-describedby`)
+- [x] B-W2: `role="alert"` added to auth-error message container
+- [x] B-W3: `console.error` in error.tsx gated behind `NODE_ENV === 'development'`
+- [x] B-W4: `json` response typed as `{ error?: { message?: string } }` (no-any rule)
+- [x] C-C1: `useSearchParams()` caller wrapped in `<Suspense>` boundary (Next.js 14 requirement)
+- [x] C-C2: `getUserInitials` guarded against empty/whitespace strings (runtime crash fix)
+- [x] C-C3: `Object.fromEntries(searchParams.entries())` memoized with `useMemo`
+- [x] C-W1: Sun/Moon wrapped in `<span className="relative">` (Moon `absolute` positioning fix)
+- [x] C-W2: Unnecessary `cn()` wrapper removed from single static string in top-header
+- [x] C-W3: `className="text-destructive"` added to Sign Out menu item
+- [x] C-W4: Redundant `role="main"` removed from `<main>` element
+- [x] C-W5: Inline arrow functions extracted to `useCallback` in dashboard-shell
+
 ---
 
 ## Phase 3: Dashboard & Apps

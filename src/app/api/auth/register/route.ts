@@ -8,6 +8,7 @@ const registerBodySchema = z.object({
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be 128 characters or less')
     .refine((val) => /[a-zA-Z]/.test(val), 'Password must contain at least one letter')
     .refine((val) => /\d/.test(val), 'Password must contain at least one number'),
 })
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       const firstMessage =
         parsed.error.issues.map((i) => (typeof i.message === 'string' ? i.message : undefined)).find(Boolean) ??
         'Validation failed'
-      return NextResponse.json({ error: firstMessage }, { status: 400 })
+      return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: firstMessage } }, { status: 400 })
     }
 
     const { firstName, lastName, email, password } = parsed.data
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: 'An account with this email already exists.' },
+        { error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists.' } },
         { status: 409 }
       )
     }
@@ -59,11 +60,12 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ data: { success: true }, meta: {} })
   } catch (err) {
-    console.error('Registration error:', err)
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Registration error:', message)
     return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
+      { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong. Please try again.' } },
       { status: 500 }
     )
   }
