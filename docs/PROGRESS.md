@@ -92,41 +92,41 @@
 ## Phase 3: Dashboard & Apps
 
 ### Dashboard Page (`/dashboard`)
-- [ ] Welcome message with user's first name
-- [ ] Filter controls row:
-  - [ ] Organization dropdown filter (`?org=`)
-  - [ ] Platform dropdown filter (All, iOS, Android)
-  - [ ] Release type dropdown filter (All, Alpha, Beta, RC)
-- [ ] View toggle (grid/list) persisted in URL (`?view=grid|list`)
-- [ ] "+ New App" button (desktop only, opens sheet)
-- [ ] Grid view - responsive grid (1/2/3 columns)
-- [ ] List view - table with sticky header
-- [ ] App card component (icon, name, platform badge, release type badge, org, version, testers, View Details)
-- [ ] App list row component (clickable row with all fields)
-- [ ] Search functionality (debounced, filters by name/org/platform/version)
-- [ ] Empty state ("No apps yet" with create button)
-- [ ] No results state ("No apps found matching your search")
+- [x] Welcome message with user's first name
+- [x] Filter controls row:
+  - [x] Organization dropdown filter (`?org=`)
+  - [x] Platform dropdown filter (All, iOS, Android)
+  - [x] Release type dropdown filter (All, Alpha, Beta, RC)
+- [x] View toggle (grid/list) persisted in URL (`?view=grid|list`)
+- [x] "+ New App" button (desktop only, opens sheet)
+- [x] Grid view - responsive grid (1/2/3 columns)
+- [x] List view - table with sticky header
+- [x] App card component (icon, name, platform badge, release type badge, org, version, testers, View Details)
+- [x] App list row component (clickable row with all fields)
+- [x] Search functionality (debounced, filters by name/org/platform/version)
+- [x] Empty state ("No apps yet" with create button)
+- [x] No results state ("No apps found matching your search")
 
 ### New App Sheet
-- [ ] Sheet sliding from right (max-w-md)
-- [ ] Form fields: App Name*, Platform* (iOS/Android), Organization*, Release Type*
-- [ ] App icon drag & drop upload
-- [ ] Create button disabled until all required fields valid
-- [ ] Cancel button (grey, red on hover)
+- [x] Sheet sliding from right (max-w-md)
+- [x] Form fields: App Name*, Platform* (iOS/Android), Organization*, Release Type*
+- [x] App icon drag & drop upload
+- [x] Create button disabled until all required fields valid
+- [x] Cancel button (grey, red on hover)
 
 ### App Details Page (`/apps/[id]`)
-- [ ] Header: back button, app icon, name, platform badge, version
-- [ ] "Upload New Release" button (desktop only)
-- [ ] 3-dot menu with "Delete App" (desktop only)
-- [ ] Delete app confirmation dialog (type app name to confirm)
-- [ ] Stats section:
-  - [ ] Desktop: 3 cards (Latest Version, Total Members, Total Downloads)
-  - [ ] Mobile: compact list with dividers
-- [ ] Tabs:
-  - [ ] Releases tab (release cards with download + view details buttons)
-  - [ ] User Feedback tab (placeholder)
-  - [ ] Metadata tab (placeholder)
-  - [ ] Distribution Groups tab (desktop only, list groups + create new)
+- [x] Header: back button, app icon, name, platform badge, version
+- [x] "Upload New Release" button (desktop only)
+- [x] 3-dot menu with "Delete App" (desktop only)
+- [x] Delete app confirmation dialog (type app name to confirm)
+- [x] Stats section:
+  - [x] Desktop: 3 cards (Latest Version, Total Members, Total Downloads)
+  - [x] Mobile: compact list with dividers
+- [x] Tabs:
+  - [x] Releases tab (release cards with download + view details buttons)
+  - [x] User Feedback tab (placeholder)
+  - [x] Metadata tab (placeholder)
+  - [x] Distribution Groups tab (desktop only, list groups + create new)
 
 ---
 
@@ -362,7 +362,7 @@
 |----------|------|-------|---|
 | Phase 1: Foundation | 20 | 23 | 87% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
-| Phase 3: Dashboard & Apps | 0 | 22 | 0% |
+| Phase 3: Dashboard & Apps | 22 | 22 | 100% |
 | Phase 4: Releases | 0 | 16 | 0% |
 | Phase 5: Distribution Groups | 0 | 17 | 0% |
 | Phase 6: Organizations & Invitations | 0 | 13 | 0% |
@@ -371,8 +371,8 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **32** | **176** | **18%** |
+| **TOTAL** | **54** | **176** | **31%** |
 
 ---
 
-_Last updated: 2026-02-09_
+_Last updated: 2026-02-10_

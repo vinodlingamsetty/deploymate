@@ -1,6 +1,8 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { signOut } from 'next-auth/react'
 import {
@@ -51,6 +53,17 @@ function getUserInitials(user: TopHeaderProps['user']): string {
 
 export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
   const { resolvedTheme, setTheme } = useTheme()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Controlled search value — initialise from URL so it stays in sync
+  const [searchValue, setSearchValue] = useState(
+    () => searchParams.get('search') ?? ''
+  )
+
+  const isDashboard = pathname.startsWith('/dashboard')
 
   function handleThemeToggle() {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
@@ -58,6 +71,24 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
 
   function handleSignOut() {
     signOut({ callbackUrl: '/login' })
+  }
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value
+    setSearchValue(value)
+
+    if (!isDashboard) return
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (value) {
+        params.set('search', value)
+      } else {
+        params.delete('search')
+      }
+      router.push(`/dashboard?${params.toString()}`)
+    }, 300)
   }
 
   return (
@@ -87,12 +118,14 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
       <div className="flex items-center gap-1">
         {/* Search input - desktop only */}
         <div className="relative hidden w-64 lg:flex">
-          <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2" />
+          <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2" aria-hidden="true" />
           <Input
             type="search"
             placeholder="Search apps..."
             className="pl-9"
             aria-label="Search apps"
+            value={searchValue}
+            onChange={handleSearchChange}
           />
         </div>
 
