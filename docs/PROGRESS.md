@@ -45,22 +45,22 @@
 ## Phase 2: Layout & Navigation
 
 ### Dashboard Layout
-- [ ] Dashboard layout component (`src/app/(dashboard)/layout.tsx`) wrapping all authenticated pages
-- [ ] Sidebar component (`src/components/layout/sidebar.tsx`)
-  - [ ] "All Apps" link at top (Home icon)
-  - [ ] Collapsible "Organizations" section with chevron
-  - [ ] Each org expandable with "Groups" submenu link
-  - [ ] Active state highlighting based on URL params
-  - [ ] No "Settings" or "All Organizations" in sidebar
-- [ ] Top header component (`src/components/layout/top-header.tsx`)
-  - [ ] Hamburger menu (mobile/tablet only, toggles sidebar)
-  - [ ] DeployMate logo (links to `/dashboard`)
-  - [ ] Search input (desktop only, real-time filtering)
-  - [ ] Theme toggle (light/dark)
-  - [ ] Notifications bell icon (mock)
-  - [ ] User avatar with dropdown (Settings, Sign Out)
-- [ ] Mobile sidebar as Sheet overlay with backdrop
-- [ ] Skip-to-content accessibility link
+- [x] Dashboard layout component (`src/app/(dashboard)/layout.tsx`) wrapping all authenticated pages
+- [x] Sidebar component (`src/components/layout/sidebar.tsx`)
+  - [x] "All Apps" link at top (Home icon)
+  - [x] Collapsible "Organizations" section with chevron
+  - [x] Each org expandable with "Groups" submenu link
+  - [x] Active state highlighting based on URL params
+  - [x] No "Settings" or "All Organizations" in sidebar
+- [x] Top header component (`src/components/layout/top-header.tsx`)
+  - [x] Hamburger menu (mobile/tablet only, toggles sidebar)
+  - [x] DeployMate logo (links to `/dashboard`)
+  - [x] Search input (desktop only, real-time filtering)
+  - [x] Theme toggle (light/dark)
+  - [x] Notifications bell icon (mock)
+  - [x] User avatar with dropdown (Settings, Sign Out)
+- [x] Mobile sidebar as Sheet overlay with backdrop
+- [x] Skip-to-content accessibility link
 
 ---
 
@@ -336,7 +336,7 @@
 | Category | Done | Total | % |
 |----------|------|-------|---|
 | Phase 1: Foundation | 20 | 23 | 87% |
-| Phase 2: Layout & Navigation | 0 | 12 | 0% |
+| Phase 2: Layout & Navigation | 12 | 12 | 100% |
 | Phase 3: Dashboard & Apps | 0 | 22 | 0% |
 | Phase 4: Releases | 0 | 16 | 0% |
 | Phase 5: Distribution Groups | 0 | 17 | 0% |
@@ -346,7 +346,7 @@
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **20** | **176** | **11%** |
+| **TOTAL** | **32** | **176** | **18%** |
 
 ---
 
