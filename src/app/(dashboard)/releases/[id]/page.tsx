@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { MOCK_APPS, MOCK_RELEASES } from '@/lib/mock-data'
+import { MOCK_APPS, MOCK_RELEASES, MOCK_RELEASE_GROUPS } from '@/lib/mock-data'
 import { ReleaseDetailsContent } from '@/components/releases/release-details-content'
 import { generateOtaToken } from '@/lib/ota-token'
 
@@ -16,6 +16,15 @@ export default async function ReleaseDetailsPage({ params }: ReleaseDetailsPageP
 
   const otaToken = app.platform === 'IOS' ? generateOtaToken(release.id) : undefined
 
+  const releaseGroupMapping = MOCK_RELEASE_GROUPS.find((rg) => rg.releaseId === release.id)
+  const distributionGroups = releaseGroupMapping
+    ? releaseGroupMapping.groups.map((g) => ({
+        id: g.id,
+        name: g.name,
+        memberCount: g.memberCount,
+      }))
+    : []
+
   return (
     <ReleaseDetailsContent
       release={release}
@@ -23,6 +32,7 @@ export default async function ReleaseDetailsPage({ params }: ReleaseDetailsPageP
       appId={app.id}
       platform={app.platform}
       otaToken={otaToken}
+      distributionGroups={distributionGroups}
     />
   )
 }

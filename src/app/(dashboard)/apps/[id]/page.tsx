@@ -22,7 +22,7 @@ export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
     <div className="space-y-6">
       <AppDetailsHeader app={app} />
       <AppStats app={app} />
-      <AppTabs releases={releases} />
+      <AppTabs releases={releases} appId={app.id} />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { getStorageAdapter } from '@/lib/storage'
 import { parseBinary } from '@/lib/binary-parser'
+import { resolveGroupMembers } from '@/lib/group-resolver'
 import { z } from 'zod'
 
 const distributionGroupSchema = z.object({
@@ -89,6 +90,14 @@ export async function POST(
         : {}),
     },
   })
+
+  // Resolve group members for future notification dispatch
+  if (distributionGroups && distributionGroups.length > 0) {
+    const resolvedUserIds = await resolveGroupMembers(distributionGroups)
+    console.log(
+      `Release ${release.id}: resolved ${resolvedUserIds.length} unique users from ${distributionGroups.length} groups`,
+    )
+  }
 
   return successResponse(release, 201)
 }

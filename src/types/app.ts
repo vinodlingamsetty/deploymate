@@ -57,3 +57,69 @@ export function getPlatformLabel(p: Platform): string {
 export function getReleaseTypeLabel(t: ReleaseTypeName): string {
   return RELEASE_TYPE_LABELS[t]
 }
+
+export type GroupMemberRole = 'MANAGER' | 'TESTER'
+
+export interface MockAppDistGroupMember {
+  userId: string
+  email: string
+  firstName: string | null
+  lastName: string | null
+  avatarUrl: string | null
+  role: GroupMemberRole
+}
+
+export interface MockAppDistGroup {
+  id: string
+  appId: string
+  name: string
+  description: string | null
+  memberCount: number
+  createdAt: string
+}
+
+export interface MockAppDistGroupDetail extends MockAppDistGroup {
+  members: MockAppDistGroupMember[]
+}
+
+export interface MockOrgDistGroupMember {
+  userId: string
+  email: string
+  firstName: string | null
+  lastName: string | null
+  avatarUrl: string | null
+  role: GroupMemberRole
+}
+
+export interface MockOrgDistGroupApp {
+  appId: string
+  name: string
+  platform: Platform
+}
+
+export interface MockOrgDistGroup {
+  id: string
+  orgSlug: string
+  name: string
+  description: string | null
+  memberCount: number
+  managerCount: number
+  testerCount: number
+  linkedAppsCount: number
+  createdAt: string
+}
+
+export interface MockOrgDistGroupDetail extends MockOrgDistGroup {
+  members: MockOrgDistGroupMember[]
+  apps: MockOrgDistGroupApp[]
+}
+
+export interface MockOrganization {
+  name: string
+  slug: string
+}
+
+export interface MockReleaseGroup {
+  releaseId: string
+  groups: Array<{ id: string; type: 'app' | 'org'; name: string; memberCount: number }>
+}

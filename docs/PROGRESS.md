@@ -170,31 +170,31 @@
 ## Phase 5: Distribution Groups
 
 ### App-Level Groups
-- [ ] List app groups (`GET /api/v1/apps/:appId/groups`)
-- [ ] Create app group sheet (group name + add members with email/role)
-- [ ] Get app group details (`GET /api/v1/groups/app/:groupId`)
-- [ ] Update app group (`PATCH /api/v1/groups/app/:groupId`)
-- [ ] Delete app group (`DELETE /api/v1/groups/app/:groupId`)
-- [ ] Add members to app group (`POST /api/v1/groups/app/:groupId/members`)
-- [ ] Remove member from app group (`DELETE /api/v1/groups/app/:groupId/members/:uid`)
+- [x] List app groups (`GET /api/v1/apps/:appId/groups`)
+- [x] Create app group sheet (group name + add members with email/role)
+- [x] Get app group details (`GET /api/v1/groups/app/:groupId`)
+- [x] Update app group (`PATCH /api/v1/groups/app/:groupId`)
+- [x] Delete app group (`DELETE /api/v1/groups/app/:groupId`)
+- [x] Add members to app group (`POST /api/v1/groups/app/:groupId/members`)
+- [x] Remove member from app group (`DELETE /api/v1/groups/app/:groupId/members/:uid`)
 
 ### Org-Level Groups
-- [ ] Groups page (`/groups?org=[slug]`) - list all org groups
-- [ ] Create org group sheet (group name + description)
-- [ ] Manage group sheet with Members and Apps tabs
-- [ ] Add user sheet (email + role)
-- [ ] Add apps sheet (select apps to link)
-- [ ] Get org group details (`GET /api/v1/groups/org/:groupId`)
-- [ ] Update org group (`PATCH /api/v1/groups/org/:groupId`)
-- [ ] Delete org group (`DELETE /api/v1/groups/org/:groupId`)
-- [ ] Add members to org group (`POST /api/v1/groups/org/:groupId/members`)
-- [ ] Remove member from org group
-- [ ] Add apps to org group (`POST /api/v1/groups/org/:groupId/apps`)
-- [ ] Remove app from org group
+- [x] Groups page (`/groups?org=[slug]`) - list all org groups
+- [x] Create org group sheet (group name + description)
+- [x] Manage group sheet with Members and Apps tabs
+- [x] Add user sheet (email + role)
+- [x] Add apps sheet (select apps to link)
+- [x] Get org group details (`GET /api/v1/groups/org/:groupId`)
+- [x] Update org group (`PATCH /api/v1/groups/org/:groupId`)
+- [x] Delete org group (`DELETE /api/v1/groups/org/:groupId`)
+- [x] Add members to org group (`POST /api/v1/groups/org/:groupId/members`)
+- [x] Remove member from org group (`DELETE /api/v1/groups/org/:groupId/members/:uid`)
+- [x] Add apps to org group (`POST /api/v1/groups/org/:groupId/apps`)
+- [x] Remove app from org group (`DELETE /api/v1/groups/org/:groupId/apps/:appId`)
 
 ### Release-Group Linking
-- [ ] Link releases to distribution groups on publish
-- [ ] Resolve users from selected groups for notifications
+- [x] Link releases to distribution groups on publish
+- [x] Resolve users from selected groups for notifications
 
 ---
 
@@ -372,15 +372,15 @@
 | Phase 4a: Release UI | 9 | 9 | 100% |
 | Phase 4b: API + Storage | 4 | 4 | 100% |
 | Phase 4c: Download & Install | 6 | 6 | 100% |
-| Phase 5: Distribution Groups | 0 | 17 | 0% |
+| Phase 5: Distribution Groups | 21 | 21 | 100% |
 | Phase 6: Organizations & Invitations | 0 | 13 | 0% |
 | Phase 7: Settings | 0 | 17 | 0% |
 | Phase 8: API Endpoints | 0 | 17 | 0% |
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **73** | **179** | **41%** |
+| **TOTAL** | **94** | **183** | **51%** |
 
 ---
 
-_Last updated: 2026-02-10_
+_Last updated: 2026-02-11_

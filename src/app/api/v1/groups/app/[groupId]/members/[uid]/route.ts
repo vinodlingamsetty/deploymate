@@ -1,0 +1,57 @@
+import { auth } from '@/lib/auth'
+import { successResponse, errorResponse } from '@/lib/api-utils'
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { groupId: string; uid: string } },
+) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+  }
+
+  if (!params.groupId.trim() || !params.uid.trim()) {
+    return errorResponse('BAD_REQUEST', 'Invalid group ID or user ID', 400)
+  }
+
+  const { db } = await import('@/lib/db')
+
+  // Verify group exists and user has access via org membership
+  const group = await db.appDistGroup.findUnique({
+    where: { id: params.groupId },
+    include: { app: { select: { orgId: true } } },
+  })
+  if (!group) {
+    return errorResponse('NOT_FOUND', 'Group not found', 404)
+  }
+
+  const membership = await db.membership.findUnique({
+    where: { userId_orgId: { userId: session.user.id, orgId: group.app.orgId } },
+  })
+  if (!membership) {
+    return errorResponse('FORBIDDEN', 'You do not have access to this group', 403)
+  }
+
+  try {
+    await db.appGroupMember.delete({
+      where: {
+        groupId_userId: {
+          groupId: params.groupId,
+          userId: params.uid,
+        },
+      },
+    })
+  } catch (err: unknown) {
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'code' in err &&
+      (err as { code: string }).code === 'P2025'
+    ) {
+      return errorResponse('NOT_FOUND', 'Member not found in this group', 404)
+    }
+    throw err
+  }
+
+  return successResponse({ deleted: true })
+}

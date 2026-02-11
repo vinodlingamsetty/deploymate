@@ -3,8 +3,7 @@
 import { useEffect } from 'react'
 
 import { Separator } from '@/components/ui/separator'
-import { MOCK_DISTRIBUTION_GROUPS } from '@/lib/mock-data'
-import type { MockRelease, Platform } from '@/types/app'
+import type { MockDistributionGroup, MockRelease, Platform } from '@/types/app'
 import { ReleaseDetailsHeader } from './release-details-header'
 import { ReleaseDetailsStats } from './release-details-stats'
 
@@ -14,6 +13,7 @@ interface ReleaseDetailsContentProps {
   appId: string
   platform: Platform
   otaToken?: string
+  distributionGroups: MockDistributionGroup[]
 }
 
 export function ReleaseDetailsContent({
@@ -22,6 +22,7 @@ export function ReleaseDetailsContent({
   appId,
   platform,
   otaToken,
+  distributionGroups,
 }: ReleaseDetailsContentProps) {
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -57,17 +58,21 @@ export function ReleaseDetailsContent({
       <div className="mt-6">
         <h2 className="text-base font-semibold">Distribution Groups</h2>
         <div className="mt-2 flex flex-wrap gap-2">
-          {MOCK_DISTRIBUTION_GROUPS.map((group) => (
-            <span
-              key={group.id}
-              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-            >
-              {group.name}
-              <span className="ml-1.5 text-muted-foreground">
-                {group.memberCount}
+          {distributionGroups.length > 0 ? (
+            distributionGroups.map((group) => (
+              <span
+                key={group.id}
+                className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
+              >
+                {group.name}
+                <span className="ml-1.5 text-muted-foreground">
+                  {group.memberCount}
+                </span>
               </span>
-            </span>
-          ))}
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No distribution groups assigned.</p>
+          )}
         </div>
       </div>
     </div>

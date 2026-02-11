@@ -132,6 +132,8 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
         onOpenChange={setUploadSheetOpen}
         platform={app.platform}
         appName={app.name}
+        appId={app.id}
+        orgSlug={app.org.slug}
       />
 
       {/* Delete confirmation dialog */}

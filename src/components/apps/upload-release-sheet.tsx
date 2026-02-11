@@ -13,7 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { MOCK_DISTRIBUTION_GROUPS } from '@/lib/mock-data'
+import { MOCK_APP_DISTRIBUTION_GROUPS, MOCK_ORG_DISTRIBUTION_GROUPS } from '@/lib/mock-data'
 import type { Platform } from '@/types/app'
 
 interface UploadReleaseSheetProps {
@@ -21,6 +21,13 @@ interface UploadReleaseSheetProps {
   onOpenChange: (open: boolean) => void
   platform: Platform
   appName: string
+  appId: string
+  orgSlug: string
+}
+
+interface SelectedGroup {
+  id: string
+  type: 'app' | 'org'
 }
 
 interface SelectedFile {
@@ -38,13 +45,20 @@ export function UploadReleaseSheet({
   onOpenChange,
   platform,
   appName,
+  appId,
+  orgSlug,
 }: UploadReleaseSheetProps) {
   const [step, setStep] = useState<1 | 2>(1)
   const [releaseNotes, setReleaseNotes] = useState('')
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
+  const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([])
   const [showGroupWarning, setShowGroupWarning] = useState(false)
+
+  const appGroups = MOCK_APP_DISTRIBUTION_GROUPS.filter((g) => g.appId === appId)
+  const orgGroups = MOCK_ORG_DISTRIBUTION_GROUPS.filter((g) => g.orgSlug === orgSlug)
+
+  const selectedGroupIds = new Set(selectedGroups.map((g) => g.id))
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -82,28 +96,26 @@ export function UploadReleaseSheet({
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  function handleGroupToggle(groupId: string) {
-    setSelectedGroupIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(groupId)) {
-        next.delete(groupId)
-      } else {
-        next.add(groupId)
+  function handleGroupToggle(groupId: string, type: 'app' | 'org') {
+    setSelectedGroups((prev) => {
+      const exists = prev.some((g) => g.id === groupId)
+      if (exists) {
+        return prev.filter((g) => g.id !== groupId)
       }
-      return next
+      return [...prev, { id: groupId, type }]
     })
     setShowGroupWarning(false)
   }
 
   function handlePublish() {
-    if (selectedGroupIds.size === 0) {
+    if (selectedGroups.length === 0) {
       setShowGroupWarning(true)
       return
     }
     console.log({
       releaseNotes,
       file: selectedFile ? { name: selectedFile.name, size: selectedFile.size } : null,
-      groups: selectedGroupIds,
+      distributionGroups: selectedGroups,
     })
     handleClose()
   }
@@ -118,7 +130,7 @@ export function UploadReleaseSheet({
     setReleaseNotes('')
     setSelectedFile(null)
     setIsDragging(false)
-    setSelectedGroupIds(new Set())
+    setSelectedGroups([])
     setShowGroupWarning(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -267,27 +279,67 @@ export function UploadReleaseSheet({
                   Select at least one group to distribute this release.
                 </p>
 
-                <div className="space-y-3">
-                  {MOCK_DISTRIBUTION_GROUPS.map((group) => (
-                    <div key={group.id} className="flex items-center gap-3">
-                      <Checkbox
-                        id={`group-${group.id}`}
-                        checked={selectedGroupIds.has(group.id)}
-                        onCheckedChange={() => handleGroupToggle(group.id)}
-                        aria-label={`${group.name} (${group.memberCount} members)`}
-                      />
-                      <Label
-                        htmlFor={`group-${group.id}`}
-                        className="flex flex-1 cursor-pointer items-center justify-between"
-                      >
-                        <span>{group.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {group.memberCount} members
-                        </span>
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                {/* App Groups */}
+                {appGroups.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      App Groups
+                    </p>
+                    {appGroups.map((group) => (
+                      <div key={group.id} className="flex items-center gap-3">
+                        <Checkbox
+                          id={`group-${group.id}`}
+                          checked={selectedGroupIds.has(group.id)}
+                          onCheckedChange={() => handleGroupToggle(group.id, 'app')}
+                          aria-label={`${group.name} (${group.memberCount} members)`}
+                        />
+                        <Label
+                          htmlFor={`group-${group.id}`}
+                          className="flex flex-1 cursor-pointer items-center justify-between"
+                        >
+                          <span>{group.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {group.memberCount} members
+                          </span>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Org Groups */}
+                {orgGroups.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Organization Groups
+                    </p>
+                    {orgGroups.map((group) => (
+                      <div key={group.id} className="flex items-center gap-3">
+                        <Checkbox
+                          id={`group-${group.id}`}
+                          checked={selectedGroupIds.has(group.id)}
+                          onCheckedChange={() => handleGroupToggle(group.id, 'org')}
+                          aria-label={`${group.name} (${group.memberCount} members)`}
+                        />
+                        <Label
+                          htmlFor={`group-${group.id}`}
+                          className="flex flex-1 cursor-pointer items-center justify-between"
+                        >
+                          <span>{group.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {group.memberCount} members
+                          </span>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {appGroups.length === 0 && orgGroups.length === 0 && (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    No distribution groups available. Create groups first.
+                  </p>
+                )}
 
                 {showGroupWarning && (
                   <p className="text-xs text-destructive" role="alert">
@@ -301,7 +353,7 @@ export function UploadReleaseSheet({
                 <Button
                   type="button"
                   style={{ backgroundColor: '#0077b6' }}
-                  disabled={selectedGroupIds.size === 0}
+                  disabled={selectedGroups.length === 0}
                   onClick={handlePublish}
                 >
                   Publish

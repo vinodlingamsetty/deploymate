@@ -1,4 +1,4 @@
-import type { MockApp, MockDistributionGroup, MockRelease } from '@/types/app'
+import type { MockApp, MockAppDistGroup, MockAppDistGroupDetail, MockDistributionGroup, MockOrgDistGroup, MockOrgDistGroupDetail, MockOrganization, MockReleaseGroup, MockRelease } from '@/types/app'
 
 export const MOCK_APPS: MockApp[] = [
   // Finance org
@@ -279,4 +279,259 @@ export const MOCK_DISTRIBUTION_GROUPS: MockDistributionGroup[] = [
   { id: 'group-beta', name: 'Beta Testers', memberCount: 12 },
   { id: 'group-qa', name: 'QA Team', memberCount: 8 },
   { id: 'group-internal', name: 'Internal Team', memberCount: 5 },
+]
+
+export const MOCK_APP_DISTRIBUTION_GROUPS: MockAppDistGroup[] = [
+  {
+    id: 'app-group-ft-beta',
+    appId: 'app-finance-ios',
+    name: 'Beta Testers',
+    description: 'External beta testing group',
+    memberCount: 8,
+    createdAt: '2026-01-10T10:00:00Z',
+  },
+  {
+    id: 'app-group-ft-qa',
+    appId: 'app-finance-ios',
+    name: 'QA Team',
+    description: 'Internal QA testers',
+    memberCount: 4,
+    createdAt: '2026-01-12T10:00:00Z',
+  },
+  {
+    id: 'app-group-crm-alpha',
+    appId: 'app-sales-crm',
+    name: 'Alpha Testers',
+    description: null,
+    memberCount: 3,
+    createdAt: '2026-01-20T10:00:00Z',
+  },
+  {
+    id: 'app-group-sr-beta',
+    appId: 'app-sales-reports',
+    name: 'Beta Group',
+    description: 'Sales Reports beta program',
+    memberCount: 12,
+    createdAt: '2026-01-15T10:00:00Z',
+  },
+]
+
+export const MOCK_APP_GROUP_DETAILS: Record<string, MockAppDistGroupDetail> = {
+  'app-group-ft-beta': {
+    id: 'app-group-ft-beta',
+    appId: 'app-finance-ios',
+    name: 'Beta Testers',
+    description: 'External beta testing group',
+    memberCount: 8,
+    createdAt: '2026-01-10T10:00:00Z',
+    members: [
+      { userId: 'u1', email: 'alice@example.com', firstName: 'Alice', lastName: 'Johnson', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u2', email: 'bob@example.com', firstName: 'Bob', lastName: 'Smith', avatarUrl: null, role: 'TESTER' },
+      { userId: 'u3', email: 'carol@example.com', firstName: 'Carol', lastName: 'Williams', avatarUrl: null, role: 'TESTER' },
+    ],
+  },
+  'app-group-ft-qa': {
+    id: 'app-group-ft-qa',
+    appId: 'app-finance-ios',
+    name: 'QA Team',
+    description: 'Internal QA testers',
+    memberCount: 4,
+    createdAt: '2026-01-12T10:00:00Z',
+    members: [
+      { userId: 'u4', email: 'dave@example.com', firstName: 'Dave', lastName: 'Brown', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u5', email: 'eve@example.com', firstName: 'Eve', lastName: 'Davis', avatarUrl: null, role: 'TESTER' },
+    ],
+  },
+  'app-group-crm-alpha': {
+    id: 'app-group-crm-alpha',
+    appId: 'app-sales-crm',
+    name: 'Alpha Testers',
+    description: null,
+    memberCount: 3,
+    createdAt: '2026-01-20T10:00:00Z',
+    members: [
+      { userId: 'u1', email: 'alice@example.com', firstName: 'Alice', lastName: 'Johnson', avatarUrl: null, role: 'MANAGER' },
+    ],
+  },
+  'app-group-sr-beta': {
+    id: 'app-group-sr-beta',
+    appId: 'app-sales-reports',
+    name: 'Beta Group',
+    description: 'Sales Reports beta program',
+    memberCount: 12,
+    createdAt: '2026-01-15T10:00:00Z',
+    members: [
+      { userId: 'u2', email: 'bob@example.com', firstName: 'Bob', lastName: 'Smith', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u3', email: 'carol@example.com', firstName: 'Carol', lastName: 'Williams', avatarUrl: null, role: 'TESTER' },
+      { userId: 'u6', email: 'frank@example.com', firstName: 'Frank', lastName: 'Miller', avatarUrl: null, role: 'TESTER' },
+    ],
+  },
+}
+
+export const MOCK_ORGANIZATIONS: MockOrganization[] = [
+  { name: 'Finance', slug: 'finance' },
+  { name: 'Sales', slug: 'sales' },
+  { name: 'Marketing', slug: 'marketing' },
+]
+
+export const MOCK_ORG_DISTRIBUTION_GROUPS: MockOrgDistGroup[] = [
+  {
+    id: 'org-group-finance-all',
+    orgSlug: 'finance',
+    name: 'All Finance Testers',
+    description: 'All testers across finance apps',
+    memberCount: 15,
+    managerCount: 3,
+    testerCount: 12,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-05T10:00:00Z',
+  },
+  {
+    id: 'org-group-finance-vip',
+    orgSlug: 'finance',
+    name: 'VIP Testers',
+    description: 'Priority access testers',
+    memberCount: 5,
+    managerCount: 1,
+    testerCount: 4,
+    linkedAppsCount: 1,
+    createdAt: '2026-01-08T10:00:00Z',
+  },
+  {
+    id: 'org-group-sales-qa',
+    orgSlug: 'sales',
+    name: 'Sales QA',
+    description: 'QA team for all sales apps',
+    memberCount: 8,
+    managerCount: 2,
+    testerCount: 6,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-10T10:00:00Z',
+  },
+  {
+    id: 'org-group-marketing-beta',
+    orgSlug: 'marketing',
+    name: 'Marketing Beta',
+    description: null,
+    memberCount: 6,
+    managerCount: 1,
+    testerCount: 5,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-15T10:00:00Z',
+  },
+]
+
+export const MOCK_ORG_GROUP_DETAILS: Record<string, MockOrgDistGroupDetail> = {
+  'org-group-finance-all': {
+    id: 'org-group-finance-all',
+    orgSlug: 'finance',
+    name: 'All Finance Testers',
+    description: 'All testers across finance apps',
+    memberCount: 15,
+    managerCount: 3,
+    testerCount: 12,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-05T10:00:00Z',
+    members: [
+      { userId: 'u1', email: 'alice@example.com', firstName: 'Alice', lastName: 'Johnson', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u2', email: 'bob@example.com', firstName: 'Bob', lastName: 'Smith', avatarUrl: null, role: 'TESTER' },
+      { userId: 'u3', email: 'carol@example.com', firstName: 'Carol', lastName: 'Williams', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u4', email: 'dave@example.com', firstName: 'Dave', lastName: 'Brown', avatarUrl: null, role: 'TESTER' },
+    ],
+    apps: [
+      { appId: 'app-finance-ios', name: 'FinanceTracker', platform: 'IOS' },
+      { appId: 'app-finance-android', name: 'FinanceTracker', platform: 'ANDROID' },
+    ],
+  },
+  'org-group-finance-vip': {
+    id: 'org-group-finance-vip',
+    orgSlug: 'finance',
+    name: 'VIP Testers',
+    description: 'Priority access testers',
+    memberCount: 5,
+    managerCount: 1,
+    testerCount: 4,
+    linkedAppsCount: 1,
+    createdAt: '2026-01-08T10:00:00Z',
+    members: [
+      { userId: 'u5', email: 'eve@example.com', firstName: 'Eve', lastName: 'Davis', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u6', email: 'frank@example.com', firstName: 'Frank', lastName: 'Miller', avatarUrl: null, role: 'TESTER' },
+    ],
+    apps: [
+      { appId: 'app-finance-ios', name: 'FinanceTracker', platform: 'IOS' },
+    ],
+  },
+  'org-group-sales-qa': {
+    id: 'org-group-sales-qa',
+    orgSlug: 'sales',
+    name: 'Sales QA',
+    description: 'QA team for all sales apps',
+    memberCount: 8,
+    managerCount: 2,
+    testerCount: 6,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-10T10:00:00Z',
+    members: [
+      { userId: 'u1', email: 'alice@example.com', firstName: 'Alice', lastName: 'Johnson', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u7', email: 'grace@example.com', firstName: 'Grace', lastName: 'Taylor', avatarUrl: null, role: 'TESTER' },
+    ],
+    apps: [
+      { appId: 'app-sales-crm', name: 'SalesPulse CRM', platform: 'IOS' },
+      { appId: 'app-sales-reports', name: 'Sales Reports', platform: 'IOS' },
+    ],
+  },
+  'org-group-marketing-beta': {
+    id: 'org-group-marketing-beta',
+    orgSlug: 'marketing',
+    name: 'Marketing Beta',
+    description: null,
+    memberCount: 6,
+    managerCount: 1,
+    testerCount: 5,
+    linkedAppsCount: 2,
+    createdAt: '2026-01-15T10:00:00Z',
+    members: [
+      { userId: 'u8', email: 'henry@example.com', firstName: 'Henry', lastName: 'Wilson', avatarUrl: null, role: 'MANAGER' },
+      { userId: 'u9', email: 'iris@example.com', firstName: 'Iris', lastName: 'Moore', avatarUrl: null, role: 'TESTER' },
+    ],
+    apps: [
+      { appId: 'app-marketing-android', name: 'CampaignHub', platform: 'ANDROID' },
+      { appId: 'app-marketing-ios', name: 'BrandKit', platform: 'IOS' },
+    ],
+  },
+}
+
+export const MOCK_RELEASE_GROUPS: MockReleaseGroup[] = [
+  {
+    releaseId: 'rel-ft-ios-1',
+    groups: [
+      { id: 'app-group-ft-beta', type: 'app', name: 'Beta Testers', memberCount: 8 },
+      { id: 'org-group-finance-all', type: 'org', name: 'All Finance Testers', memberCount: 15 },
+    ],
+  },
+  {
+    releaseId: 'rel-ft-ios-2',
+    groups: [
+      { id: 'app-group-ft-qa', type: 'app', name: 'QA Team', memberCount: 4 },
+    ],
+  },
+  {
+    releaseId: 'rel-crm-1',
+    groups: [
+      { id: 'app-group-crm-alpha', type: 'app', name: 'Alpha Testers', memberCount: 3 },
+      { id: 'org-group-sales-qa', type: 'org', name: 'Sales QA', memberCount: 8 },
+    ],
+  },
+  {
+    releaseId: 'rel-sr-1',
+    groups: [
+      { id: 'app-group-sr-beta', type: 'app', name: 'Beta Group', memberCount: 12 },
+    ],
+  },
+  {
+    releaseId: 'rel-ch-1',
+    groups: [
+      { id: 'org-group-marketing-beta', type: 'org', name: 'Marketing Beta', memberCount: 6 },
+    ],
+  },
 ]
