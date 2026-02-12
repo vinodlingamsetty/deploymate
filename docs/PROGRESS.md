@@ -201,21 +201,21 @@
 ## Phase 6: Organizations & Invitations
 
 ### Organizations
-- [ ] List user's organizations (`GET /api/v1/organizations`)
-- [ ] Create organization (`POST /api/v1/organizations`) - Super Admin only
-- [ ] Get organization details (`GET /api/v1/organizations/:slug`)
-- [ ] Update organization (`PATCH /api/v1/organizations/:slug`) - Admin
-- [ ] Delete organization (`DELETE /api/v1/organizations/:slug?confirm=true`) - Super Admin
-- [ ] List org members (`GET /api/v1/organizations/:slug/members`)
-- [ ] Update member role (`PATCH /api/v1/organizations/:slug/members/:id`)
-- [ ] Remove member (`DELETE /api/v1/organizations/:slug/members/:id`)
+- [x] List user's organizations (`GET /api/v1/organizations`)
+- [x] Create organization (`POST /api/v1/organizations`) - Super Admin only
+- [x] Get organization details (`GET /api/v1/organizations/:slug`)
+- [x] Update organization (`PATCH /api/v1/organizations/:slug`) - Admin
+- [x] Delete organization (`DELETE /api/v1/organizations/:slug?confirm=true`) - Super Admin
+- [x] List org members (`GET /api/v1/organizations/:slug/members`)
+- [x] Update member role (`PATCH /api/v1/organizations/:slug/members/:id`)
+- [x] Remove member (`DELETE /api/v1/organizations/:slug/members/:id`)
 
 ### Invitations
-- [ ] Send invitation (`POST /api/v1/organizations/:slug/invitations`) - Admin
-- [ ] List pending invitations (`GET /api/v1/organizations/:slug/invitations`)
-- [ ] Cancel invitation (`DELETE /api/v1/invitations/:id`)
-- [ ] Accept invitation (`POST /api/v1/invitations/:token/accept`) - Public
-- [ ] Invitation email sending (transactional email service)
+- [x] Send invitation (`POST /api/v1/organizations/:slug/invitations`) - Admin
+- [x] List pending invitations (`GET /api/v1/organizations/:slug/invitations`)
+- [x] Cancel invitation (`DELETE /api/v1/invitations/:id`)
+- [x] Accept invitation (`POST /api/v1/invitations/:token/accept`) - Public
+- [x] Invitation email sending (transactional email service)
 
 ---
 
@@ -373,14 +373,14 @@
 | Phase 4b: API + Storage | 4 | 4 | 100% |
 | Phase 4c: Download & Install | 6 | 6 | 100% |
 | Phase 5: Distribution Groups | 21 | 21 | 100% |
-| Phase 6: Organizations & Invitations | 0 | 13 | 0% |
+| Phase 6: Organizations & Invitations | 13 | 13 | 100% |
 | Phase 7: Settings | 0 | 17 | 0% |
 | Phase 8: API Endpoints | 0 | 17 | 0% |
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **94** | **183** | **51%** |
+| **TOTAL** | **107** | **183** | **58%** |
 
 ---
 
-_Last updated: 2026-02-11_
+_Last updated: 2026-02-12_
