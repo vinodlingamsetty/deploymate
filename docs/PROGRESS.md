@@ -222,36 +222,36 @@
 ## Phase 7: Settings Page (`/settings`)
 
 ### Profile Tab
-- [ ] Settings page with 4-tab layout
-- [ ] First name / Last name (editable)
-- [ ] Email (read-only with lock icon)
-- [ ] Change password button/flow
-- [ ] Save changes button
-- [ ] `GET /api/v1/users/me` endpoint
-- [ ] `PATCH /api/v1/users/me` endpoint
-- [ ] `POST /api/v1/users/me/change-password` endpoint
+- [x] Settings page with 4-tab layout
+- [x] First name / Last name (editable)
+- [x] Email (read-only with lock icon)
+- [x] Change password button/flow
+- [x] Save changes button
+- [x] `GET /api/v1/users/me` endpoint
+- [x] `PATCH /api/v1/users/me` endpoint
+- [x] `POST /api/v1/users/me/change-password` endpoint
 
 ### Notifications Tab
-- [ ] Email notification toggles (New Release, Download Alerts, Feedback, Weekly Digest)
-- [ ] Save preferences button
+- [x] Email notification toggles (New Release, Download Alerts, Feedback, Weekly Digest)
+- [x] Save preferences button
 
 ### Organizations Tab
-- [ ] List user's organizations with role
-- [ ] Leave button (with confirmation dialog - type org name)
-- [ ] Manage button (Admin only - opens manage org sheet)
-- [ ] "+ Create Organization" button (Super Admin only)
-- [ ] Create organization sheet (name + optional admin emails)
-- [ ] Manage organization sheet (edit name, list/add/remove admins)
-- [ ] Remove admin confirmation dialog
+- [x] List user's organizations with role
+- [x] Leave button (with confirmation dialog - type org name)
+- [x] Manage button (Admin only - opens manage org sheet)
+- [x] "+ Create Organization" button (Super Admin only)
+- [x] Create organization sheet (name + optional admin emails)
+- [x] Manage organization sheet (edit name, list/add/remove admins)
+- [x] Remove admin confirmation dialog
 
 ### API Tokens Tab
-- [ ] Generate new token form (token name + access level: Read Only / Read & Write)
-- [ ] Show generated token once (copy to clipboard)
-- [ ] List existing tokens (name, access level, created date)
-- [ ] Revoke token button (with confirmation)
-- [ ] `GET /api/v1/tokens` endpoint
-- [ ] `POST /api/v1/tokens` endpoint
-- [ ] `DELETE /api/v1/tokens/:id` endpoint
+- [x] Generate new token form (token name + access level: Read Only / Read & Write)
+- [x] Show generated token once (copy to clipboard)
+- [x] List existing tokens (name, access level, created date)
+- [x] Revoke token button (with confirmation)
+- [x] `GET /api/v1/tokens` endpoint
+- [x] `POST /api/v1/tokens` endpoint
+- [x] `DELETE /api/v1/tokens/:id` endpoint
 
 ---
 
@@ -374,13 +374,13 @@
 | Phase 4c: Download & Install | 6 | 6 | 100% |
 | Phase 5: Distribution Groups | 21 | 21 | 100% |
 | Phase 6: Organizations & Invitations | 13 | 13 | 100% |
-| Phase 7: Settings | 0 | 17 | 0% |
+| Phase 7: Settings | 17 | 17 | 100% |
 | Phase 8: API Endpoints | 0 | 17 | 0% |
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **107** | **183** | **58%** |
+| **TOTAL** | **124** | **183** | **68%** |
 
 ---
 
-_Last updated: 2026-02-12_
+_Last updated: 2026-02-13_
