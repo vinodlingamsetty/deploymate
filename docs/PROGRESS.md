@@ -258,27 +258,27 @@
 ## Phase 8: API Endpoints (`/api/v1/`)
 
 ### Apps API
-- [ ] `GET /api/v1/apps` - List accessible apps (with pagination, filtering, sorting)
-- [ ] `POST /api/v1/apps` - Create app (Admin)
-- [ ] `GET /api/v1/apps/:id` - Get app details
-- [ ] `PATCH /api/v1/apps/:id` - Update app (Admin)
-- [ ] `DELETE /api/v1/apps/:id?confirm=AppName` - Delete app (Admin)
+- [x] `GET /api/v1/apps` - List accessible apps (with pagination, filtering, sorting)
+- [x] `POST /api/v1/apps` - Create app (Admin)
+- [x] `GET /api/v1/apps/:id` - Get app details
+- [x] `PATCH /api/v1/apps/:id` - Update app (Admin)
+- [x] `DELETE /api/v1/apps/:id?confirm=AppName` - Delete app (Admin)
 
 ### Releases API
-- [ ] `GET /api/v1/apps/:appId/releases` - List releases
-- [ ] `POST /api/v1/apps/:appId/releases/upload-url` - Get signed upload URL (Manager+)
-- [ ] `POST /api/v1/apps/:appId/releases` - Create release after upload (Manager+)
-- [ ] `GET /api/v1/apps/:appId/releases/latest` - Get latest release
-- [ ] `GET /api/v1/releases/:id` - Get release details
-- [ ] `DELETE /api/v1/releases/:id` - Delete release (Manager+)
-- [ ] `GET /api/v1/releases/:id/download` - Get signed download URL
+- [x] `GET /api/v1/apps/:appId/releases` - List releases
+- [x] `POST /api/v1/apps/:appId/releases/upload-url` - Get signed upload URL (Manager+)
+- [x] `POST /api/v1/apps/:appId/releases` - Create release after upload (Manager+)
+- [x] `GET /api/v1/apps/:appId/releases/latest` - Get latest release
+- [x] `GET /api/v1/releases/:id` - Get release details
+- [x] `DELETE /api/v1/releases/:id` - Delete release (Manager+)
+- [x] `GET /api/v1/releases/:id/download` - Get signed download URL
 
 ### Shared API Infrastructure
-- [ ] API response format helpers (`{ data, meta }` / `{ error: { code, message } }`)
-- [ ] Pagination helper (`?page=1&limit=20` with meta response)
-- [ ] API token authentication (Bearer `dm_xxxxxxxxxx`)
-- [ ] Permission checking middleware/utility (`src/lib/permissions.ts`)
-- [ ] Zod validation schemas (`src/lib/validations.ts`)
+- [x] API response format helpers (`{ data, meta }` / `{ error: { code, message } }`)
+- [x] Pagination helper (`?page=1&limit=20` with meta response)
+- [x] API token authentication (Bearer `dm_xxxxxxxxxx`)
+- [x] Permission checking middleware/utility (`src/lib/permissions.ts`)
+- [x] Zod validation schemas (`src/lib/validations.ts`)
 - [ ] Rate limiting (optional)
 
 ---
@@ -375,11 +375,11 @@
 | Phase 5: Distribution Groups | 21 | 21 | 100% |
 | Phase 6: Organizations & Invitations | 13 | 13 | 100% |
 | Phase 7: Settings | 17 | 17 | 100% |
-| Phase 8: API Endpoints | 0 | 17 | 0% |
+| Phase 8: API Endpoints | 16 | 17 | 94% |
 | Phase 9: Storage Adapters | 0 | 7 | 0% |
 | Phase 10: Infrastructure | 0 | 13 | 0% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **124** | **183** | **68%** |
+| **TOTAL** | **140** | **183** | **77%** |
 
 ---
 
