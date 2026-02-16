@@ -3,7 +3,11 @@ import { successResponse, errorResponse } from '@/lib/api-utils'
 import { getStorageAdapter } from '@/lib/storage'
 import { parseBinary } from '@/lib/binary-parser'
 import { resolveGroupMembers } from '@/lib/group-resolver'
+import { isRedisAvailable } from '@/lib/redis'
+import { getBinaryParsingQueue, getNotificationQueue } from '@/lib/queue'
 import { z } from 'zod'
+import logger from '@/lib/logger'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 const distributionGroupSchema = z.object({
   id: z.string(),
@@ -58,46 +62,113 @@ export async function POST(
     return errorResponse('NOT_FOUND', 'Uploaded file not found', 404)
   }
 
-  // Read file and extract metadata from the binary
-  const fileBuffer = await storage.getBuffer(fileKey)
-  const metadata = parseBinary(fileBuffer, app.platform)
-
-  const version = metadata.version ?? '0.0.0'
-  const buildNumber = metadata.buildNumber ?? '0'
   const fileName = fileKey.split('/').pop() ?? 'unknown'
+  const useQueue = isRedisAvailable()
 
-  // Create the release record (and optionally link distribution groups)
-  const release = await db.release.create({
-    data: {
-      appId: params.id,
-      version,
-      buildNumber,
-      releaseType,
-      releaseNotes: releaseNotes ?? null,
-      fileKey,
-      fileSize: fileBuffer.length,
-      fileName,
-      minOSVersion: metadata.minOSVersion,
-      extractedBundleId: metadata.bundleId,
-      ...(distributionGroups && distributionGroups.length > 0
-        ? {
-            releaseGroups: {
-              create: distributionGroups.map((g) => ({
-                ...(g.type === 'app' ? { appGroupId: g.id } : { orgGroupId: g.id }),
-              })),
-            },
-          }
-        : {}),
-    },
-  })
+  let release
 
-  // Resolve group members for future notification dispatch
-  if (distributionGroups && distributionGroups.length > 0) {
-    const resolvedUserIds = await resolveGroupMembers(distributionGroups)
-    console.log(
-      `Release ${release.id}: resolved ${resolvedUserIds.length} unique users from ${distributionGroups.length} groups`,
-    )
+  if (useQueue) {
+    // Queue mode — create release with PROCESSING status, enqueue background jobs
+    release = await db.release.create({
+      data: {
+        appId: params.id,
+        version: '0.0.0',
+        buildNumber: '0',
+        releaseType,
+        releaseNotes: releaseNotes ?? null,
+        fileKey,
+        fileSize: 0,
+        fileName,
+        status: 'PROCESSING',
+        ...(distributionGroups && distributionGroups.length > 0
+          ? {
+              releaseGroups: {
+                create: distributionGroups.map((g) => ({
+                  ...(g.type === 'app' ? { appGroupId: g.id } : { orgGroupId: g.id }),
+                })),
+              },
+            }
+          : {}),
+      },
+    })
+
+    const binaryQueue = getBinaryParsingQueue()
+    if (binaryQueue) {
+      await binaryQueue.add('parse', {
+        releaseId: release.id,
+        fileKey,
+        platform: app.platform,
+      })
+    }
+
+    if (distributionGroups && distributionGroups.length > 0) {
+      const notifQueue = getNotificationQueue()
+      if (notifQueue) {
+        await notifQueue.add('notify', {
+          releaseId: release.id,
+          appName: app.name,
+          version: '0.0.0',
+          distributionGroups,
+        })
+      }
+    }
+
+    logger.info({ releaseId: release.id, mode: 'queue' }, 'Release created with background processing')
+  } else {
+    // Inline mode — parse synchronously (zero-Redis deployments)
+    const fileBuffer = await storage.getBuffer(fileKey)
+    const metadata = parseBinary(fileBuffer, app.platform)
+
+    const version = metadata.version ?? '0.0.0'
+    const buildNumber = metadata.buildNumber ?? '0'
+
+    release = await db.release.create({
+      data: {
+        appId: params.id,
+        version,
+        buildNumber,
+        releaseType,
+        releaseNotes: releaseNotes ?? null,
+        fileKey,
+        fileSize: fileBuffer.length,
+        fileName,
+        minOSVersion: metadata.minOSVersion,
+        extractedBundleId: metadata.bundleId,
+        status: 'READY',
+        ...(distributionGroups && distributionGroups.length > 0
+          ? {
+              releaseGroups: {
+                create: distributionGroups.map((g) => ({
+                  ...(g.type === 'app' ? { appGroupId: g.id } : { orgGroupId: g.id }),
+                })),
+              },
+            }
+          : {}),
+      },
+    })
+
+    if (distributionGroups && distributionGroups.length > 0) {
+      const resolvedUserIds = await resolveGroupMembers(distributionGroups)
+      logger.info(
+        { releaseId: release.id, userCount: resolvedUserIds.length, groupCount: distributionGroups.length },
+        'Resolved group members for release notification',
+      )
+    }
+
+    logger.info({ releaseId: release.id, mode: 'inline' }, 'Release created with inline processing')
   }
+
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: app.orgId,
+    action: 'create',
+    entityType: 'release',
+    entityId: release.id,
+    newValue: { version: release.version, buildNumber: release.buildNumber, releaseType, appId: params.id },
+    ipAddress,
+    userAgent,
+  })
 
   return successResponse(release, 201)
 }

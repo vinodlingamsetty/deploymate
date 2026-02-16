@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireOrgMembership, requireOrgRole } from '@/lib/org-auth'
 import { z } from 'zod'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 const updateOrgSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -102,6 +103,19 @@ export async function PATCH(
     select: { id: true, name: true, slug: true, createdAt: true, updatedAt: true },
   })
 
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: org.id,
+    action: 'update',
+    entityType: 'organization',
+    entityId: org.id,
+    oldValue: { name: org.name },
+    newValue: { name },
+    ipAddress,
+    userAgent,
+  })
+
   return successResponse(updated)
 }
 
@@ -135,6 +149,18 @@ export async function DELETE(
   }
 
   await db.organization.delete({ where: { id: org.id } })
+
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: org.id,
+    action: 'delete',
+    entityType: 'organization',
+    entityId: org.id,
+    oldValue: { slug: params.slug },
+    ipAddress,
+    userAgent,
+  })
 
   return successResponse({ deleted: true })
 }

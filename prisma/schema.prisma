@@ -33,6 +33,7 @@ model User {
   invitationsReceived Invitation[]  @relation("InvitationsReceived")
   downloadLogs        DownloadLog[]
   feedback            Feedback[]
+  auditLogs           AuditLog[]
 
   @@index([email])
 }
@@ -52,6 +53,7 @@ model Organization {
   apps        App[]
   orgGroups   OrgDistGroup[]
   invitations Invitation[]
+  auditLogs   AuditLog[]
 
   @@index([slug])
 }
@@ -124,6 +126,7 @@ model Release {
   fileName          String
   minOSVersion      String?
   extractedBundleId String?
+  status            String      @default("READY") // PROCESSING | READY | FAILED
   downloadCount     Int         @default(0)
   createdAt         DateTime    @default(now())
 
@@ -339,4 +342,30 @@ model Feedback {
 
   @@index([releaseId])
   @@index([userId])
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  orgId      String?
+  action     String   // 'create' | 'update' | 'delete'
+  entityType String   // 'app' | 'release' | 'organization' | 'invitation' | 'member'
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

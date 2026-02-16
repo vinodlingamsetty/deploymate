@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import logger from '@/lib/logger'
 
 const setupBodySchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: { success: true }, meta: {} })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Setup error:', message)
+    logger.error({ err: message }, 'Setup error')
     return NextResponse.json(
       { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong. Please try again.' } },
       { status: 500 }

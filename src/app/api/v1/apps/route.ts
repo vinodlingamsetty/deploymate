@@ -11,6 +11,7 @@ import {
   sortOrderSchema,
 } from '@/lib/validations'
 import { type Prisma } from '@prisma/client'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 export async function GET(request: Request) {
   const { authenticated, user } = await authenticateRequest(request)
@@ -145,6 +146,18 @@ export async function POST(request: Request) {
       include: {
         organization: { select: { id: true, name: true, slug: true } },
       },
+    })
+
+    const { ipAddress, userAgent } = extractRequestMeta(request)
+    void createAuditLog({
+      userId: user.id,
+      orgId,
+      action: 'create',
+      entityType: 'app',
+      entityId: app.id,
+      newValue: { name, platform, orgId, bundleId },
+      ipAddress,
+      userAgent,
     })
 
     return successResponse(app, 201)

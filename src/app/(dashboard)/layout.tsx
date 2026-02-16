@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
+import logger from '@/lib/logger'
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
   } catch (error) {
     // If database is unavailable, show empty org list
     // This allows the dashboard to load without crashing
-    console.error('[Dashboard] Failed to fetch organizations:', String(error))
+    logger.error({ err: String(error) }, 'Failed to fetch organizations')
     organizations = []
   }
 

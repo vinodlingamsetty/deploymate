@@ -5,6 +5,8 @@ import { requireOrgRole } from '@/lib/org-auth'
 import { generateInviteToken, getInvitationExpiryDate } from '@/lib/invite-token'
 import { sendInvitationEmail } from '@/lib/email'
 import { z } from 'zod'
+import logger from '@/lib/logger'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 class ConflictError extends Error {}
 
@@ -97,6 +99,18 @@ export async function POST(
     throw e
   }
 
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: org.id,
+    action: 'create',
+    entityType: 'invitation',
+    entityId: invitation.id,
+    newValue: { email, role: parsed.data.role },
+    ipAddress,
+    userAgent,
+  })
+
   await sendInvitationEmail({
     to: email,
     organizationName: org.name,
@@ -104,7 +118,7 @@ export async function POST(
     role: parsed.data.role,
     acceptUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/invitations/${token}/accept`,
   }).catch((err) => {
-    console.error(`Failed to send invitation email to ${email}:`, String(err))
+    logger.error({ err: String(err), email }, 'Failed to send invitation email')
   })
 
   return successResponse(

@@ -1,8 +1,32 @@
+export type StorageProvider = 'aws-s3' | 'gcp-storage' | 'azure-blob' | 'local'
+
+export interface UploadResult {
+  key: string
+  size: number
+}
+
+export interface SignedUrlOptions {
+  expiresIn?: number
+  downloadFilename?: string
+}
+
+export interface FileMetadata {
+  key: string
+  size: number
+  contentType: string
+  lastModified: Date
+}
+
 export interface StorageAdapter {
-  upload(key: string, data: Buffer, contentType: string): Promise<{ key: string; size: number }>
-  getSignedDownloadUrl(key: string, expiresIn?: number): Promise<string>
-  getSignedUploadUrl(key: string, contentType: string, expiresIn?: number): Promise<string>
+  readonly provider: StorageProvider
+
+  upload(key: string, data: Buffer, contentType: string): Promise<UploadResult>
+  getSignedDownloadUrl(key: string, options?: SignedUrlOptions): Promise<string>
+  getSignedUploadUrl(key: string, contentType: string, options?: SignedUrlOptions): Promise<string>
   delete(key: string): Promise<void>
   exists(key: string): Promise<boolean>
   getBuffer(key: string): Promise<Buffer>
+  getMetadata(key: string): Promise<FileMetadata | null>
+  copy(sourceKey: string, destinationKey: string): Promise<void>
+  list(prefix: string, maxResults?: number): Promise<string[]>
 }

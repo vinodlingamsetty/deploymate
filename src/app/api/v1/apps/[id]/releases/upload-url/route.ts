@@ -56,7 +56,7 @@ export async function POST(
   const fileKey = `releases/${params.id}/${fileId}.${ext}`
 
   const storage = getStorageAdapter()
-  const uploadUrl = await storage.getSignedUploadUrl(fileKey, contentType, 3600)
+  const uploadUrl = await storage.getSignedUploadUrl(fileKey, contentType, { expiresIn: 3600 })
   const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString()
 
   return successResponse({ uploadUrl, fileKey, expiresAt })

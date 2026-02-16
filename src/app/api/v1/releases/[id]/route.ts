@@ -2,6 +2,7 @@ import { authenticateRequest } from '@/lib/auth-utils'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppAccess, requireAppRole } from '@/lib/permissions'
 import { getStorageAdapter } from '@/lib/storage'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 export async function GET(
   request: Request,
@@ -93,6 +94,17 @@ export async function DELETE(
 
   // Prisma cascades handle releaseGroups, downloadLogs, feedback
   await db.release.delete({ where: { id: params.id } })
+
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: user.id,
+    action: 'delete',
+    entityType: 'release',
+    entityId: params.id,
+    oldValue: { appId: release.appId, fileKey: release.fileKey },
+    ipAddress,
+    userAgent,
+  })
 
   return successResponse({ deleted: true })
 }

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 const createOrgSchema = z.object({
   name: z.string().min(1).max(100),
@@ -99,6 +100,18 @@ export async function POST(request: NextRequest): Promise<Response> {
       })
 
       return created
+    })
+
+    const { ipAddress, userAgent } = extractRequestMeta(request)
+    void createAuditLog({
+      userId: session.user.id,
+      orgId: org.id,
+      action: 'create',
+      entityType: 'organization',
+      entityId: org.id,
+      newValue: { name, slug },
+      ipAddress,
+      userAgent,
     })
 
     return successResponse(org, 201)

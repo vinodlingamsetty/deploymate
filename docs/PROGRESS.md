@@ -286,41 +286,40 @@
 ## Phase 9: Storage Adapters
 
 ### Storage Interface & Factory
-- [ ] StorageAdapter interface (`upload`, `getSignedDownloadUrl`, `getSignedUploadUrl`, `delete`, `exists`, `getMetadata`, `copy`, `list`)
-- [ ] Storage adapter factory (`createStorageAdapter` based on `STORAGE_PROVIDER` env var)
-- [ ] Singleton `getStorageAdapter()` export
+- [x] StorageAdapter interface (`upload`, `getSignedDownloadUrl`, `getSignedUploadUrl`, `delete`, `exists`, `getBuffer`, `getMetadata`, `copy`, `list`)
+- [x] Storage adapter factory (based on `STORAGE_PROVIDER` env var)
+- [x] Singleton `getStorageAdapter()` export
 
 ### Adapter Implementations
-- [ ] Local storage adapter (Node.js fs, for dev/small deployments)
-- [ ] AWS S3 adapter (`@aws-sdk/client-s3`)
-- [ ] Google Cloud Storage adapter (`@google-cloud/storage`)
-- [ ] Azure Blob Storage adapter (`@azure/storage-blob`)
-- [ ] Salesforce Files adapter (`jsforce`)
+- [x] Local storage adapter (Node.js fs, for dev/small deployments)
+- [x] AWS S3 adapter (`@aws-sdk/client-s3`)
+- [x] Google Cloud Storage adapter (`@google-cloud/storage`)
+- [x] Azure Blob Storage adapter (`@azure/storage-blob`)
 
 ---
 
 ## Phase 10: Infrastructure & Deployment
 
 ### Docker
-- [ ] `Dockerfile` (production)
-- [ ] `Dockerfile.dev` (development)
-- [ ] `docker-compose.yml` (app + postgres + redis)
-- [ ] `docker-compose.dev.yml`
-- [ ] `nginx.conf` (reverse proxy)
+- [x] `Dockerfile` (production, multi-stage)
+- [x] `Dockerfile.dev` (development)
+- [x] `docker-compose.yml` (app + postgres + redis + caddy)
+- [x] `docker-compose.dev.yml`
+- [x] `Caddyfile` (reverse proxy with auto-HTTPS)
 
 ### CI/CD
-- [ ] GitHub Actions: lint + type-check + test on PR (`ci.yml`)
-- [ ] GitHub Actions: build Docker image on release (`build.yml`)
-- [ ] GitHub Actions: build documentation site (`docs.yml`)
+- [x] GitHub Actions: lint + type-check + build on PR (`ci.yml`)
+- [x] GitHub Actions: build Docker image on release (`build.yml`)
+- [x] GitHub Actions: build documentation site placeholder (`docs.yml`)
 
 ### Background Jobs
-- [ ] BullMQ + Redis setup for background processing
-- [ ] Binary parsing job (extract metadata from uploaded IPA/APK)
-- [ ] Notification job (email testers when new release published)
+- [x] BullMQ + Redis setup for background processing
+- [x] Binary parsing job (extract metadata from uploaded IPA/APK)
+- [x] Notification job (email testers when new release published)
 
 ### Monitoring & Logging
-- [ ] Audit log system (track user actions: create, update, delete)
-- [ ] Structured logging
+- [x] Audit log system (track user actions: create, update, delete)
+- [x] Structured logging (pino)
 
 ---
 
@@ -376,11 +375,11 @@
 | Phase 6: Organizations & Invitations | 13 | 13 | 100% |
 | Phase 7: Settings | 17 | 17 | 100% |
 | Phase 8: API Endpoints | 16 | 17 | 94% |
-| Phase 9: Storage Adapters | 0 | 7 | 0% |
-| Phase 10: Infrastructure | 0 | 13 | 0% |
+| Phase 9: Storage Adapters | 7 | 7 | 100% |
+| Phase 10: Infrastructure | 13 | 13 | 100% |
 | Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **140** | **183** | **77%** |
+| **TOTAL** | **160** | **182** | **88%** |
 
 ---
 
-_Last updated: 2026-02-13_
+_Last updated: 2026-02-15_

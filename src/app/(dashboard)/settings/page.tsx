@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { SettingsContent } from '@/components/settings/settings-content'
+import logger from '@/lib/logger'
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -54,7 +55,7 @@ export default async function SettingsPage() {
       org: m.org,
     }))
   } catch (error) {
-    console.error('[Settings] Failed to fetch user data:', String(error))
+    logger.error({ err: String(error) }, 'Failed to fetch user data')
   }
 
   return (

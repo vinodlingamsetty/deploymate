@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireOrgRole } from '@/lib/org-auth'
 import { z } from 'zod'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 const updateRoleSchema = z.object({
   role: z.enum(['ADMIN', 'MANAGER', 'TESTER']),
@@ -78,6 +79,19 @@ export async function PATCH(
     data: { role: parsed.data.role },
   })
 
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: org.id,
+    action: 'update',
+    entityType: 'member',
+    entityId: params.id,
+    oldValue: { role: targetMembership.role },
+    newValue: { role: parsed.data.role },
+    ipAddress,
+    userAgent,
+  })
+
   return successResponse(updatedMembership)
 }
 
@@ -138,6 +152,18 @@ export async function DELETE(
     }),
     db.membership.delete({ where: { id: params.id } }),
   ])
+
+  const { ipAddress, userAgent } = extractRequestMeta(_request)
+  void createAuditLog({
+    userId: session.user.id,
+    orgId: org.id,
+    action: 'delete',
+    entityType: 'member',
+    entityId: params.id,
+    oldValue: { userId: targetMembership.userId, role: targetMembership.role },
+    ipAddress,
+    userAgent,
+  })
 
   return successResponse({ removed: true })
 }

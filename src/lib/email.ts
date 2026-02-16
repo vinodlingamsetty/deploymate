@@ -1,3 +1,5 @@
+import logger from '@/lib/logger'
+
 interface InvitationEmailParams {
   to: string
   organizationName: string
@@ -15,10 +17,14 @@ interface InvitationEmailParams {
  */
 export async function sendInvitationEmail(params: InvitationEmailParams): Promise<void> {
   // Stub — replace with real email service (Resend/SendGrid/SES) later
-  console.log('[Email Stub] Invitation email:')
-  console.log(`  To: ${params.to}`)
-  console.log(`  Organization: ${params.organizationName}`)
-  console.log(`  Invited by: ${params.inviterName}`)
-  console.log(`  Role: ${params.role}`)
-  console.log(`  Accept URL: ${params.acceptUrl}`)
+  logger.info(
+    {
+      to: params.to,
+      organization: params.organizationName,
+      invitedBy: params.inviterName,
+      role: params.role,
+      acceptUrl: params.acceptUrl,
+    },
+    'Invitation email (stub)',
+  )
 }

@@ -3,6 +3,7 @@ import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppAccess, requireAppRole } from '@/lib/permissions'
 import { updateAppSchema } from '@/lib/validations'
 import { getStorageAdapter } from '@/lib/storage'
+import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 export async function GET(
   request: Request,
@@ -106,6 +107,18 @@ export async function PATCH(
       },
     })
 
+    const { ipAddress, userAgent } = extractRequestMeta(request)
+    void createAuditLog({
+      userId: user.id,
+      orgId: app.orgId,
+      action: 'update',
+      entityType: 'app',
+      entityId: app.id,
+      newValue: parsed.data,
+      ipAddress,
+      userAgent,
+    })
+
     return successResponse(app)
   } catch (err: unknown) {
     const { Prisma } = await import('@prisma/client')
@@ -172,6 +185,18 @@ export async function DELETE(
 
   // Prisma cascades handle dependent records
   await db.app.delete({ where: { id: params.id } })
+
+  const { ipAddress, userAgent } = extractRequestMeta(request)
+  void createAuditLog({
+    userId: user.id,
+    orgId: result.app.orgId,
+    action: 'delete',
+    entityType: 'app',
+    entityId: params.id,
+    oldValue: { name: result.app.name },
+    ipAddress,
+    userAgent,
+  })
 
   return successResponse({ deleted: true })
 }

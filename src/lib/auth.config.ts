@@ -21,11 +21,11 @@ function getAuthSecret(): string {
   }
 
   // Development fallback — allows the app to start without .env but warns loudly
+  // Note: console.warn used here instead of pino — this file must be Edge-safe (middleware)
   console.warn(
-    '\x1b[33m%s\x1b[0m', // yellow
-    '[NextAuth] WARNING: AUTH_SECRET / NEXTAUTH_SECRET is not set. ' +
+    '[NextAuth] AUTH_SECRET / NEXTAUTH_SECRET is not set. ' +
     'Using an insecure dev-only fallback. Login will work but sessions ' +
-    'will not survive restarts. Set AUTH_SECRET in .env and restart.'
+    'will not survive restarts. Set AUTH_SECRET in .env and restart.',
   )
   return DEV_FALLBACK_SECRET
 }

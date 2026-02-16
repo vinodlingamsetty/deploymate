@@ -1,0 +1,20 @@
+{$SITE_ADDRESS:localhost} {
+    reverse_proxy app:3000
+
+    # Large IPA/APK uploads
+    request_body {
+        max_size 500MB
+    }
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Cache static assets
+    @static path /_next/static/*
+    header @static Cache-Control "public, max-age=31536000, immutable"
+}
