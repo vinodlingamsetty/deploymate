@@ -326,38 +326,38 @@
 ## Phase 11: Polish & Documentation
 
 ### Accessibility (WCAG 2.1 AA)
-- [ ] Color contrast (4.5:1 minimum)
-- [ ] Keyboard navigation (all elements focusable)
-- [ ] Visible focus indicators (#0077b6 ring)
-- [ ] ARIA labels on all interactive elements
-- [ ] Form labels with `aria-describedby` for errors
-- [ ] Skip-to-content link
-- [ ] Proper heading hierarchy (h1 > h2 > h3)
-- [ ] Loading states with `aria-busy`, `aria-live`
+- [x] Color contrast (4.5:1 minimum)
+- [x] Keyboard navigation (all elements focusable)
+- [x] Visible focus indicators (#0077b6 ring)
+- [x] ARIA labels on all interactive elements
+- [x] Form labels with `aria-describedby` for errors
+- [x] Skip-to-content link
+- [x] Proper heading hierarchy (h1 > h2 > h3)
+- [x] Loading states with `aria-busy`, `aria-live`
 
 ### Mobile Responsiveness
-- [ ] No horizontal scrolling on any page
-- [ ] Hide "Upload New Release" button on mobile
-- [ ] Hide 3-dot menu on mobile
-- [ ] Hide Distribution Groups tab on mobile
-- [ ] Compact stats (list with dividers, not cards) on mobile
-- [ ] Minimum 44px touch targets
-- [ ] Stack buttons vertically on mobile
+- [x] No horizontal scrolling on any page
+- [x] Hide "Upload New Release" button on mobile
+- [x] Hide 3-dot menu on mobile
+- [x] Hide Distribution Groups tab on mobile
+- [x] Compact stats (list with dividers, not cards) on mobile
+- [x] Minimum 44px touch targets
+- [x] Stack buttons vertically on mobile
 
 ### Documentation
-- [ ] README.md (project overview, quick start)
-- [ ] CONTRIBUTING.md (how to contribute)
-- [ ] CHANGELOG.md
-- [ ] LICENSE (Apache 2.0)
-- [ ] Documentation site (Docusaurus) with getting-started, configuration, API reference, deployment guides
+- [x] README.md (project overview, quick start)
+- [x] CONTRIBUTING.md (how to contribute)
+- [x] CHANGELOG.md
+- [x] LICENSE (Apache 2.0)
+- [x] Documentation site (Docusaurus) with getting-started, configuration, API reference, deployment guides
 
 ### Landing Page
-- [ ] Minimal landing page: hero, feature bullets, screenshot, "Get Started" link, "Documentation" link
+- [x] Minimal landing page: hero, feature bullets, screenshot, "Get Started" link, "Documentation" link
 
 ### GitHub
-- [ ] Issue templates (bug_report.md, feature_request.md)
-- [ ] Pull request template
-- [ ] `.github/workflows/` CI/CD files
+- [x] Issue templates (bug_report.md, feature_request.md)
+- [x] Pull request template
+- [x] `.github/workflows/` CI/CD files
 
 ---
 
@@ -377,8 +377,8 @@
 | Phase 8: API Endpoints | 16 | 17 | 94% |
 | Phase 9: Storage Adapters | 7 | 7 | 100% |
 | Phase 10: Infrastructure | 13 | 13 | 100% |
-| Phase 11: Polish & Docs | 0 | 19 | 0% |
-| **TOTAL** | **160** | **182** | **88%** |
+| Phase 11: Polish & Docs | 19 | 19 | 100% |
+| **TOTAL** | **179** | **182** | **98%** |
 
 ---
 

@@ -4,12 +4,20 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/**"
+      - "docs-site/**"
 
 jobs:
-  placeholder:
-    name: Documentation Build (Placeholder)
+  build:
+    name: Build Documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Documentation site build will be configured in Phase 11 (Docusaurus)."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        working-directory: docs-site
+        run: npm ci
+      - name: Build documentation
+        working-directory: docs-site
+        run: npm run build
