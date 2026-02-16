@@ -27,8 +27,16 @@ export async function createAuditLog(params: AuditLogParams): Promise<void> {
         action: params.action,
         entityType: params.entityType,
         entityId: params.entityId,
-        oldValue: params.oldValue !== undefined ? (params.oldValue as object) : undefined,
-        newValue: params.newValue !== undefined ? (params.newValue as object) : undefined,
+        oldValue: params.oldValue !== undefined
+          ? (typeof params.oldValue === 'object' && params.oldValue !== null
+              ? (params.oldValue as object)
+              : { value: params.oldValue })
+          : undefined,
+        newValue: params.newValue !== undefined
+          ? (typeof params.newValue === 'object' && params.newValue !== null
+              ? (params.newValue as object)
+              : { value: params.newValue })
+          : undefined,
         ipAddress: params.ipAddress ?? null,
         userAgent: params.userAgent ?? null,
       },

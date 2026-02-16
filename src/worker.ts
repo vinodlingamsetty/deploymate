@@ -28,7 +28,7 @@ if (!process.env.REDIS_URL) {
 
 const connection = { url: process.env.REDIS_URL }
 
-// Binary parsing worker
+// CPU-intensive binary parsing; limited to prevent resource exhaustion
 const binaryWorker = new Worker(
   'binary-parsing',
   async (job) => {
@@ -43,10 +43,18 @@ binaryWorker.on('completed', (job) => {
 })
 
 binaryWorker.on('failed', (job, err) => {
-  logger.error({ jobId: job?.id, queue: 'binary-parsing', err }, 'Job failed')
+  logger.error(
+    {
+      jobId: job?.id,
+      queue: 'binary-parsing',
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
+      attemptsMade: job?.attemptsMade,
+    },
+    'Job failed'
+  )
 })
 
-// Notifications worker
+// I/O-bound email sending; higher concurrency for throughput
 const notificationWorker = new Worker(
   'notifications',
   async (job) => {
@@ -61,7 +69,15 @@ notificationWorker.on('completed', (job) => {
 })
 
 notificationWorker.on('failed', (job, err) => {
-  logger.error({ jobId: job?.id, queue: 'notifications', err }, 'Job failed')
+  logger.error(
+    {
+      jobId: job?.id,
+      queue: 'notifications',
+      error: err instanceof Error ? { message: err.message, stack: err.stack } : err,
+      attemptsMade: job?.attemptsMade,
+    },
+    'Job failed'
+  )
 })
 
 logger.info('Worker started — listening for jobs on binary-parsing and notifications queues')
@@ -69,8 +85,24 @@ logger.info('Worker started — listening for jobs on binary-parsing and notific
 // Graceful shutdown
 async function shutdown() {
   logger.info('Shutting down workers...')
-  await Promise.all([binaryWorker.close(), notificationWorker.close()])
-  logger.info('Workers shut down gracefully')
+
+  const closePromises = Promise.all([
+    binaryWorker.close(),
+    notificationWorker.close(),
+  ])
+
+  try {
+    await Promise.race([
+      closePromises,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Shutdown timeout after 25s')), 25000)
+      ),
+    ])
+    logger.info('Workers shut down gracefully')
+  } catch (err) {
+    logger.error({ err }, 'Shutdown timeout or error, forcing exit')
+  }
+
   process.exit(0)
 }
 

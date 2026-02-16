@@ -33,14 +33,13 @@ export default async function LandingPage() {
       {/* Header */}
       <header className="w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight" style={{ color: '#0077b6' }}>
+          <span className="text-xl font-bold tracking-tight text-primary">
             DeployMate
           </span>
           {session ? (
             <Link
               href="/dashboard"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ backgroundColor: '#0077b6' }}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 text-white bg-primary hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               Go to Dashboard
             </Link>
@@ -67,8 +66,7 @@ export default async function LandingPage() {
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/register"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            style={{ backgroundColor: '#0077b6' }}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 text-white bg-primary hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             Get Started
           </Link>
@@ -94,10 +92,9 @@ export default async function LandingPage() {
                 className="rounded-lg border border-border bg-card p-6 flex gap-4"
               >
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-md flex items-center justify-center"
-                  style={{ backgroundColor: '#0077b615' }}
+                  className="flex-shrink-0 w-10 h-10 rounded-md flex items-center justify-center bg-primary/10"
                 >
-                  <Icon className="w-5 h-5" style={{ color: '#0077b6' }} aria-hidden="true" />
+                  <Icon className="w-5 h-5 text-primary" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm mb-1">{title}</h3>
@@ -114,7 +111,9 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>Released under the Apache 2.0 License.</span>
           <Link
-            href="#"
+            href="https://github.com/deploymate/deploymate"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded"
           >
             View on GitHub

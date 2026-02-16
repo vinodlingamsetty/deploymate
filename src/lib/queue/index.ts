@@ -19,6 +19,12 @@ export function getBinaryParsingQueue(): Queue | null {
 
   binaryParsingQueue = new Queue(QUEUE_NAMES.BINARY_PARSING, {
     connection: { url: getRedisUrl() },
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+      removeOnComplete: { age: 3600 },
+      removeOnFail: { age: 86400 },
+    },
   })
   return binaryParsingQueue
 }
@@ -29,6 +35,12 @@ export function getNotificationQueue(): Queue | null {
 
   notificationQueue = new Queue(QUEUE_NAMES.NOTIFICATIONS, {
     connection: { url: getRedisUrl() },
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: { type: 'exponential', delay: 1000 },
+      removeOnComplete: { age: 3600 },
+      removeOnFail: { age: 86400 },
+    },
   })
   return notificationQueue
 }

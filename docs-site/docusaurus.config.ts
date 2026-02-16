@@ -7,6 +7,7 @@ const config: Config = {
   tagline: 'Self-hosted beta app distribution for iOS and Android',
   favicon: 'img/favicon.svg',
 
+  // Update these values for your deployment
   url: 'https://deploymate.dev',
   baseUrl: '/',
 

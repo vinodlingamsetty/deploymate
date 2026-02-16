@@ -12,3 +12,8 @@ docker-compose*.yml
 .github
 .vscode
 .cursor
+dist
+coverage
+*.tsbuildinfo
+.turbo
+docs-site

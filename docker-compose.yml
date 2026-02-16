@@ -7,7 +7,7 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-deploymate}:${POSTGRES_PASSWORD:-deploymate}@db:5432/${POSTGRES_DB:-deploymate}?schema=public
-      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET:?ERROR: AUTH_SECRET must be set}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - REDIS_URL=redis://redis:6379
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
@@ -20,6 +20,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
 
   db:
@@ -39,7 +45,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --auto-aof-rewrite-percentage 100
+      --auto-aof-rewrite-min-size 64mb
     volumes:
       - redis_data:/data
     healthcheck:
@@ -61,7 +72,8 @@ services:
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS:-localhost}
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

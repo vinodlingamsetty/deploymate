@@ -23,16 +23,24 @@ export async function processBinaryParsing(job: Job<BinaryParsingJobData>): Prom
   const version = metadata.version ?? '0.0.0'
   const buildNumber = metadata.buildNumber ?? '0'
 
-  await db.release.update({
-    where: { id: job.data.releaseId },
-    data: {
-      version,
-      buildNumber,
-      fileSize: fileBuffer.length,
-      minOSVersion: metadata.minOSVersion,
-      extractedBundleId: metadata.bundleId,
-      status: 'READY',
-    },
+  // Use a transaction with a status check to prevent overwriting a release
+  // that has already been updated by a concurrent job (optimistic lock pattern).
+  await db.$transaction(async (tx) => {
+    const updated = await tx.release.updateMany({
+      where: { id: job.data.releaseId, status: 'PROCESSING' },
+      data: {
+        version,
+        buildNumber,
+        fileSize: fileBuffer.length,
+        minOSVersion: metadata.minOSVersion,
+        extractedBundleId: metadata.bundleId,
+        status: 'READY',
+      },
+    })
+
+    if (updated.count === 0) {
+      log.warn('Release was not in PROCESSING status; skipping update to avoid race condition')
+    }
   })
 
   log.info({ version, buildNumber }, 'Binary parsing completed')

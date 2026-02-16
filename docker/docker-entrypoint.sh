@@ -1,8 +1,25 @@
 #!/bin/sh
 set -e
 
+# Signal handling must be set up before starting background processes
+NEXT_PID=""
+WORKER_PID=""
+
+shutdown() {
+  echo "Shutting down..."
+  [ -n "$NEXT_PID" ] && kill "$NEXT_PID" 2>/dev/null || true
+  [ -n "$WORKER_PID" ] && kill "$WORKER_PID" 2>/dev/null || true
+  wait
+  exit 0
+}
+
+trap shutdown SIGTERM SIGINT
+
 echo "Running database migrations..."
-npx prisma migrate deploy
+if ! npx prisma migrate deploy; then
+  echo "ERROR: Database migration failed. Exiting." >&2
+  exit 1
+fi
 
 echo "Starting Next.js server..."
 node server.js &
@@ -13,16 +30,5 @@ if [ -n "$REDIS_URL" ]; then
   node worker.js &
   WORKER_PID=$!
 fi
-
-# Graceful shutdown
-shutdown() {
-  echo "Shutting down..."
-  kill $NEXT_PID 2>/dev/null || true
-  [ -n "$WORKER_PID" ] && kill $WORKER_PID 2>/dev/null || true
-  wait
-  exit 0
-}
-
-trap shutdown SIGTERM SIGINT
 
 wait
