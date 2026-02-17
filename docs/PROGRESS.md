@@ -38,7 +38,7 @@
 - [x] Error, loading, and not-found pages
 - [x] First-user setup page (`/setup`) - redirect when DB has no users, auto-set isSuperAdmin
 - [x] Auth middleware (`src/middleware.ts`) - protect dashboard routes, redirect unauthenticated users
-- [ ] Invitation acceptance flow on `/register?token=xxx` (pre-fill email, add to org)
+- [x] Invitation acceptance flow on `/register?token=xxx` (pre-fill email, add to org)
 
 ---
 
@@ -365,7 +365,7 @@
 
 | Category | Done | Total | % |
 |----------|------|-------|---|
-| Phase 1: Foundation | 20 | 23 | 87% |
+| Phase 1: Foundation | 21 | 23 | 91% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
 | Phase 3: Dashboard & Apps | 22 | 22 | 100% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
@@ -378,7 +378,7 @@
 | Phase 9: Storage Adapters | 7 | 7 | 100% |
 | Phase 10: Infrastructure | 13 | 13 | 100% |
 | Phase 11: Polish & Docs | 19 | 19 | 100% |
-| **TOTAL** | **179** | **182** | **98%** |
+| **TOTAL** | **180** | **182** | **99%** |
 
 ---
 

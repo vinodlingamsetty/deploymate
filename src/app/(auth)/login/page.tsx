@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Mail, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+
   const [showForm, setShowForm] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,14 +41,20 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        router.push('/dashboard')
+        if (token) {
+          router.push(`/invitations/${token}/accept`)
+        } else {
+          router.push('/dashboard')
+        }
         router.refresh()
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
       setIsLoading(false)
     }
   }
+
+  const registerHref = token ? `/register?token=${token}` : '/register'
 
   return (
     <Card className="w-full max-w-[400px] backdrop-blur-sm bg-background/95 shadow-2xl border-white/10">
@@ -62,7 +71,7 @@ export default function LoginPage() {
         {!showForm ? (
           <>
             <Separator />
-            
+
             <Button
               onClick={() => setShowForm(true)}
               className="w-full bg-[#0077b6] hover:bg-[#006399] text-white"
@@ -75,8 +84,8 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}
-                <Link 
-                  href="/register" 
+                <Link
+                  href={registerHref}
                   className="text-[#0077b6] hover:text-[#006399] font-medium underline-offset-4 hover:underline"
                 >
                   Sign up
@@ -169,8 +178,8 @@ export default function LoginPage() {
             <div className="text-center pt-2">
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}
-                <Link 
-                  href="/register" 
+                <Link
+                  href={registerHref}
                   className="text-[#0077b6] hover:text-[#006399] font-medium underline-offset-4 hover:underline"
                 >
                   Sign up
@@ -187,5 +196,27 @@ export default function LoginPage() {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-[400px] backdrop-blur-sm bg-background/95 shadow-2xl border-white/10">
+          <CardHeader className="space-y-4 text-center">
+            <CardTitle className="text-3xl font-bold tracking-tight">DeployMate</CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
+              Beta App Distribution Made Simple
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+          </CardContent>
+        </Card>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

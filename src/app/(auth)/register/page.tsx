@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,8 +43,12 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  const emailParam = searchParams.get('email')
+
   const [success, setSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -57,7 +61,7 @@ export default function RegisterPage() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: emailParam ?? '',
       password: '',
       confirmPassword: '',
     },
@@ -85,11 +89,17 @@ export default function RegisterPage() {
       }
 
       setSuccess(true)
-      setTimeout(() => router.push('/login'), 2000)
+      if (token) {
+        setTimeout(() => router.push(`/login?token=${token}`), 2000)
+      } else {
+        setTimeout(() => router.push('/login'), 2000)
+      }
     } catch {
       setSubmitError('An unexpected error occurred. Please try again.')
     }
   }
+
+  const loginHref = token ? `/login?token=${token}` : '/login'
 
   if (success) {
     return (
@@ -104,10 +114,12 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div
-            className="p-4 text-center text-sm text-green-600 dark:text-green-400 bg-green-500/10 dark:bg-green-500/10 border border-green-500/20 rounded-md"
+            className="p-4 text-center text-sm text-green-600 dark:text-green-400 bg-green-500/10 border border-green-500/20 rounded-md"
             role="alert"
           >
-            Account created successfully. Redirecting to login...
+            {token
+              ? 'Account created. Please sign in to accept your invitation.'
+              : 'Account created successfully. Redirecting to login...'}
           </div>
         </CardContent>
       </Card>
@@ -184,10 +196,23 @@ export default function RegisterPage() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
+              readOnly={!!token}
               aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-describedby={
+                errors.email
+                  ? 'email-error'
+                  : token
+                    ? 'email-invite-note'
+                    : undefined
+              }
+              className={token ? 'bg-muted cursor-not-allowed' : undefined}
               {...register('email')}
             />
+            {token && (
+              <p id="email-invite-note" className="text-xs text-muted-foreground">
+                This email is associated with your invitation and cannot be changed.
+              </p>
+            )}
             {errors.email && (
               <p id="email-error" className="text-sm text-destructive">
                 {errors.email.message}
@@ -263,7 +288,7 @@ export default function RegisterPage() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
-                href="/login"
+                href={loginHref}
                 className="text-[#0077b6] hover:text-[#006399] font-medium underline-offset-4 hover:underline"
               >
                 Sign in
@@ -273,5 +298,27 @@ export default function RegisterPage() {
         </form>
       </CardContent>
     </Card>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-[400px] backdrop-blur-sm bg-background/95 shadow-2xl border-white/10">
+          <CardHeader className="space-y-4 text-center">
+            <CardTitle className="text-3xl font-bold tracking-tight">DeployMate</CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
+              Beta App Distribution Made Simple
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+          </CardContent>
+        </Card>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   )
 }

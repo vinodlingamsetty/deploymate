@@ -5,7 +5,7 @@ import { authConfig } from '@/lib/auth.config'
 const { auth } = NextAuth(authConfig)
 
 const publicExactPaths = new Set(['/', '/login', '/register', '/setup', '/auth-error'])
-const publicPrefixPaths = ['/install']
+const publicPrefixPaths = ['/install', '/invitations']
 
 const PUBLIC_API_PATTERNS = [
   /^\/api\/v1\/releases\/[^/]+\/manifest$/,
