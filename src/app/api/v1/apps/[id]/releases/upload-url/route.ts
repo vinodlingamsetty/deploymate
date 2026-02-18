@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { requireAppRole } from '@/lib/permissions'
 import { getStorageAdapter } from '@/lib/storage'
 import { z } from 'zod'
 
@@ -18,12 +19,9 @@ export async function POST(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const { db } = await import('@/lib/db')
-
-  const app = await db.app.findUnique({ where: { id: params.id } })
-  if (!app) {
-    return errorResponse('NOT_FOUND', 'App not found', 404)
-  }
+  const roleResult = await requireAppRole(params.id, session.user.id, 'MANAGER', session.user.isSuperAdmin)
+  if (roleResult.error) return roleResult.error
+  const { app } = roleResult
 
   let body: unknown
   try {

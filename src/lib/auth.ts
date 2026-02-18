@@ -85,5 +85,74 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       },
     }),
+    CredentialsProvider({
+      id: 'email-otp',
+      name: 'email-otp',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        code: { label: 'Code', type: 'text' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.code) {
+          return null
+        }
+
+        const email = (credentials.email as string).trim().toLowerCase()
+        const code = (credentials.code as string).trim()
+
+        // Validate 6-digit format
+        if (!/^\d{6}$/.test(code)) {
+          return null
+        }
+
+        const { db } = await import('@/lib/db')
+        const { hashOtp } = await import('@/lib/auth-utils')
+
+        const tokenHash = hashOtp(code)
+
+        // Look up matching token
+        const verificationToken = await db.verificationToken.findFirst({
+          where: {
+            identifier: email,
+            token: tokenHash,
+          },
+        })
+
+        if (!verificationToken) {
+          return null
+        }
+
+        // Check expiry
+        if (verificationToken.expires < new Date()) {
+          await db.verificationToken.delete({ where: { id: verificationToken.id } })
+          return null
+        }
+
+        // Delete token (single-use)
+        await db.verificationToken.delete({ where: { id: verificationToken.id } })
+
+        // Find user
+        const user = await db.user.findUnique({ where: { email } })
+        if (!user) {
+          return null
+        }
+
+        // Update last login
+        await db.user.update({
+          where: { id: user.id },
+          data: { updatedAt: new Date() },
+        })
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.email,
+          image: user.avatarUrl,
+          isSuperAdmin: user.isSuperAdmin,
+        }
+      },
+    }),
   ],
 })

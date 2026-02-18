@@ -104,6 +104,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 312,
     createdAt: '2026-01-28T10:00:00Z',
     minOSVersion: 'iOS 15.0',
+    signingType: 'adhoc',
+    provisioningName: 'FinanceTracker AdHoc',
+    teamName: 'Finance Corp',
+    provisioningExpiry: '2027-01-28T10:00:00Z',
   },
   {
     id: 'rel-ft-ios-2',
@@ -117,6 +121,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-10T14:00:00Z',
     minOSVersion: 'iOS 15.0',
+    signingType: 'appstore',
+    provisioningName: 'FinanceTracker AppStore',
+    teamName: 'Finance Corp',
+    provisioningExpiry: '2027-01-10T14:00:00Z',
   },
   {
     id: 'rel-ft-ios-3',
@@ -129,6 +137,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2025-12-20T09:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'development',
+    provisioningName: 'FinanceTracker Dev',
+    teamName: 'Finance Corp',
+    provisioningExpiry: '2026-12-20T09:00:00Z',
   },
   // FinanceTracker Android
   {
@@ -143,6 +155,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 198,
     createdAt: '2026-01-25T14:00:00Z',
     minOSVersion: 'Android 10.0',
+    signingType: null,
+    provisioningName: null,
+    teamName: null,
+    provisioningExpiry: null,
   },
   {
     id: 'rel-ft-android-2',
@@ -156,6 +172,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-05T12:00:00Z',
     minOSVersion: 'Android 8.0',
+    signingType: null,
+    provisioningName: null,
+    teamName: null,
+    provisioningExpiry: null,
   },
   // SalesPulse CRM
   {
@@ -170,6 +190,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 87,
     createdAt: '2026-02-01T09:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'development',
+    provisioningName: 'SalesPulse Dev',
+    teamName: 'Sales Inc',
+    provisioningExpiry: '2027-02-01T09:00:00Z',
   },
   {
     id: 'rel-crm-2',
@@ -183,6 +207,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-15T11:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'adhoc',
+    provisioningName: 'SalesPulse AdHoc',
+    teamName: 'Sales Inc',
+    provisioningExpiry: '2027-01-15T11:00:00Z',
   },
   // Sales Reports
   {
@@ -197,6 +225,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 540,
     createdAt: '2026-01-30T11:00:00Z',
     minOSVersion: 'iOS 15.0',
+    signingType: 'enterprise',
+    provisioningName: 'Sales Reports Enterprise',
+    teamName: 'Sales Inc',
+    provisioningExpiry: '2027-01-30T11:00:00Z',
   },
   {
     id: 'rel-sr-2',
@@ -209,6 +241,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-18T15:00:00Z',
     minOSVersion: 'iOS 15.0',
+    signingType: 'appstore',
+    provisioningName: 'Sales Reports AppStore',
+    teamName: 'Sales Inc',
+    provisioningExpiry: '2027-01-18T15:00:00Z',
   },
   {
     id: 'rel-sr-3',
@@ -221,6 +257,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-08T10:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'adhoc',
+    provisioningName: 'Sales Reports AdHoc',
+    teamName: 'Sales Inc',
+    provisioningExpiry: '2027-01-08T10:00:00Z',
   },
   // CampaignHub
   {
@@ -234,6 +274,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 52,
     createdAt: '2026-02-03T16:00:00Z',
     minOSVersion: 'Android 10.0',
+    signingType: null,
+    provisioningName: null,
+    teamName: null,
+    provisioningExpiry: null,
   },
   {
     id: 'rel-ch-2',
@@ -246,6 +290,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-22T13:00:00Z',
     minOSVersion: 'Android 8.0',
+    signingType: null,
+    provisioningName: null,
+    teamName: null,
+    provisioningExpiry: null,
   },
   // BrandKit
   {
@@ -260,6 +308,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 34,
     createdAt: '2026-02-05T08:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'development',
+    provisioningName: 'BrandKit Dev',
+    teamName: 'Marketing LLC',
+    provisioningExpiry: '2027-02-05T08:00:00Z',
   },
   {
     id: 'rel-bk-2',
@@ -272,6 +324,10 @@ export const MOCK_RELEASES: MockRelease[] = [
     downloadCount: 0,
     createdAt: '2026-01-27T09:00:00Z',
     minOSVersion: 'iOS 14.0',
+    signingType: 'adhoc',
+    provisioningName: 'BrandKit AdHoc',
+    teamName: 'Marketing LLC',
+    provisioningExpiry: '2027-01-27T09:00:00Z',
   },
 ]
 

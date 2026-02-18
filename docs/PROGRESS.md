@@ -24,6 +24,7 @@
 ### Database
 - [x] Setup Prisma with PostgreSQL
 - [x] Create complete database schema (User, Organization, Membership, App, Release, Invitation, ApiToken, AppDistGroup, OrgDistGroup, AppGroupMember, OrgGroupMember, OrgGroupApp, ReleaseGroup, DownloadLog, Feedback)
+- [x] Add `AppMembership` model for per-app role overrides (with back-relations on App and User)
 - [ ] Run initial database migration (`prisma migrate dev`)
 - [ ] Seed script with demo data (organizations, apps, releases, groups)
 
@@ -39,6 +40,8 @@
 - [x] First-user setup page (`/setup`) - redirect when DB has no users, auto-set isSuperAdmin
 - [x] Auth middleware (`src/middleware.ts`) - protect dashboard routes, redirect unauthenticated users
 - [x] Invitation acceptance flow on `/register?token=xxx` (pre-fill email, add to org)
+- [x] Super-admin bootstrap: first registrant auto-gets `isSuperAdmin=true` (race-safe via `$transaction`)
+- [x] `DISABLE_REGISTRATION=true` env var to lock down sign-ups after setup
 
 ---
 
@@ -106,6 +109,7 @@
 - [x] Search functionality (debounced, filters by name/org/platform/version)
 - [x] Empty state ("No apps yet" with create button)
 - [x] No results state ("No apps found matching your search")
+- [x] Dashboard page queries live DB (apps + orgs from Prisma, no mock data)
 
 ### New App Sheet
 - [x] Sheet sliding from right (max-w-md)
@@ -113,6 +117,7 @@
 - [x] App icon drag & drop upload
 - [x] Create button disabled until all required fields valid
 - [x] Cancel button (grey, red on hover)
+- [x] Real API call (`POST /api/v1/apps`) with success/error toasts and `router.refresh()`
 
 ### App Details Page (`/apps/[id]`)
 - [x] Header: back button, app icon, name, platform badge, version
@@ -127,6 +132,7 @@
   - [x] User Feedback tab (placeholder)
   - [x] Metadata tab (placeholder)
   - [x] Distribution Groups tab (desktop only, list groups + create new)
+  - [x] Members tab (desktop only, Admin only — manage per-app role overrides)
 
 ---
 
@@ -227,6 +233,7 @@
 - [x] Email (read-only with lock icon)
 - [x] Change password button/flow
 - [x] Save changes button
+- [x] "Your Access" section: Super Admin badge + org membership list with color-coded role chips
 - [x] `GET /api/v1/users/me` endpoint
 - [x] `PATCH /api/v1/users/me` endpoint
 - [x] `POST /api/v1/users/me/change-password` endpoint
@@ -264,8 +271,14 @@
 - [x] `PATCH /api/v1/apps/:id` - Update app (Admin)
 - [x] `DELETE /api/v1/apps/:id?confirm=AppName` - Delete app (Admin)
 
+### App Members API (per-app role overrides)
+- [x] `GET /api/v1/apps/:id/members` - List app-level role overrides (Admin only)
+- [x] `POST /api/v1/apps/:id/members` - Add per-app role override `{ userId, role }` (Admin only)
+- [x] `PATCH /api/v1/apps/:id/members/:userId` - Change per-app role (Admin only)
+- [x] `DELETE /api/v1/apps/:id/members/:userId` - Remove per-app override, revert to org role (Admin only)
+
 ### Releases API
-- [x] `GET /api/v1/apps/:appId/releases` - List releases
+- [x] `GET /api/v1/apps/:appId/releases` - List releases (org member access check added)
 - [x] `POST /api/v1/apps/:appId/releases/upload-url` - Get signed upload URL (Manager+)
 - [x] `POST /api/v1/apps/:appId/releases` - Create release after upload (Manager+)
 - [x] `GET /api/v1/apps/:appId/releases/latest` - Get latest release
@@ -278,7 +291,11 @@
 - [x] Pagination helper (`?page=1&limit=20` with meta response)
 - [x] API token authentication (Bearer `dm_xxxxxxxxxx`)
 - [x] Permission checking middleware/utility (`src/lib/permissions.ts`)
+  - [x] `requireAppAccess` — any org member can read
+  - [x] `requireAppRole` — checks AppMembership override first, falls back to org role
 - [x] Zod validation schemas (`src/lib/validations.ts`)
+- [x] Role enforcement on group mutation endpoints (PATCH/DELETE require MANAGER+)
+- [x] Role enforcement on `POST /api/v1/apps/:id/groups` (MANAGER+)
 - [ ] Rate limiting (optional)
 
 ---
@@ -361,25 +378,80 @@
 
 ---
 
+## Phase 12: iOS Provisioning Profile Detection
+
+### Provisioning Profile Parsing
+- [x] Add `ProvisioningType`, `ProvisioningInfo` types to binary parser
+- [x] Parse `embedded.mobileprovision` from IPA files (CMS envelope → XML plist)
+- [x] Detect signing type: Development, Ad Hoc, Enterprise, App Store
+- [x] Extract profile name, team name, expiration date
+- [x] Pass provisioning fields through `parseBinary()` index
+
+### Database & Persistence
+- [x] Add `signingType`, `provisioningName`, `teamName`, `provisioningExpiry` to Release model
+- [x] Persist provisioning data in inline release creation
+- [x] Persist provisioning data in background binary parsing processor
+
+### UI Display
+- [x] Signing type badge on release cards (color-coded: Development, Ad Hoc, Enterprise, App Store)
+- [x] Signing & Team stat cards on release details page (with expiry + profile name)
+- [x] `SIGNING_TYPE_LABELS` constant with label/color mappings
+- [x] Mock data updated with representative signing data (iOS releases) and nulls (Android)
+
+---
+
+## Phase 13: Email OTP, CI/CD Pipeline, Tech Stack Docs
+
+### Email OTP Sign-In
+- [x] `VerificationToken` Prisma model with HMAC-SHA256 hashed tokens
+- [x] `hashOtp()` utility in `auth-utils.ts`
+- [x] Nodemailer SMTP transport layer (`src/lib/email-transport.ts`)
+- [x] Real email implementation replacing stubs (`sendInvitationEmail`, `sendOtpEmail`, `sendNewReleaseEmail`)
+- [x] OTP send API route (`POST /api/auth/otp/send`) with rate limiting and enumeration protection
+- [x] `email-otp` CredentialsProvider in NextAuth config
+- [x] Login page UI with 4 modes: landing, password, otp-email, otp-code
+- [x] Graceful degradation when SMTP not configured (console logging)
+
+### CI/CD Pipeline
+- [x] Vitest test framework setup (`vitest.config.ts`)
+- [x] Unit tests: `api-utils.test.ts` (response helpers)
+- [x] Unit tests: `otp.test.ts` (hash determinism, format validation)
+- [x] Unit tests: `validations.test.ts` (pagination, createApp schemas)
+- [x] CI workflow: test job (`pnpm test`)
+- [x] CI workflow: security audit job (`pnpm audit`)
+- [x] Docker build workflow: PR trigger with build-only + Trivy scan
+- [x] Dependabot config for npm + GitHub Actions updates
+
+### Notification Worker
+- [x] Notification processor wired to real email sending (`sendNewReleaseEmail`)
+
+### Documentation
+- [x] Tech stack document (`docs/TECH_STACK.md`)
+- [x] `.env.example` updated with SMTP configuration
+
+---
+
 ## Quick Stats
 
 | Category | Done | Total | % |
 |----------|------|-------|---|
-| Phase 1: Foundation | 21 | 23 | 91% |
+| Phase 1: Foundation | 23 | 25 | 92% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
-| Phase 3: Dashboard & Apps | 22 | 22 | 100% |
+| Phase 3: Dashboard & Apps | 23 | 23 | 100% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
 | Phase 4b: API + Storage | 4 | 4 | 100% |
 | Phase 4c: Download & Install | 6 | 6 | 100% |
 | Phase 5: Distribution Groups | 21 | 21 | 100% |
 | Phase 6: Organizations & Invitations | 13 | 13 | 100% |
-| Phase 7: Settings | 17 | 17 | 100% |
-| Phase 8: API Endpoints | 16 | 17 | 94% |
+| Phase 7: Settings | 18 | 18 | 100% |
+| Phase 8: API Endpoints | 24 | 25 | 96% |
 | Phase 9: Storage Adapters | 7 | 7 | 100% |
 | Phase 10: Infrastructure | 13 | 13 | 100% |
 | Phase 11: Polish & Docs | 19 | 19 | 100% |
-| **TOTAL** | **180** | **182** | **99%** |
+| Phase 12: Provisioning Profile | 12 | 12 | 100% |
+| Phase 13: Email OTP, CI/CD, Docs | 19 | 19 | 100% |
+| **TOTAL** | **223** | **226** | **99%** |
 
 ---
 
-_Last updated: 2026-02-15_
+_Last updated: 2026-02-17_

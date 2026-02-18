@@ -11,16 +11,18 @@ export default async function DashboardLayout({
   const session = await auth()
   if (!session) redirect('/login')
 
-  let organizations: Array<{ name: string; slug: string }> = []
+  let organizations: Array<{ id: string; name: string; slug: string }> = []
 
   try {
     const { db } = await import('@/lib/db')
     const memberships = await db.membership.findMany({
       where: { userId: session.user.id },
-      include: { org: { select: { name: true, slug: true } } },
+      include: { org: { select: { id: true, name: true, slug: true } } },
       orderBy: { org: { name: 'asc' } },
     })
-    organizations = memberships.map((m) => ({ name: m.org.name, slug: m.org.slug }))
+    organizations = memberships
+      .filter((m) => m.org != null)
+      .map((m) => ({ id: m.org.id, name: m.org.name, slug: m.org.slug }))
   } catch (error) {
     // If database is unavailable, show empty org list
     // This allows the dashboard to load without crashing

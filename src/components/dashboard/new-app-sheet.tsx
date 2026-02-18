@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -35,12 +36,14 @@ type NewAppFormValues = z.infer<typeof newAppSchema>
 interface NewAppSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  organizations: Array<{ name: string; slug: string }>
+  organizations: Array<{ id: string; name: string; slug: string }>
+  onSuccess?: () => void
 }
 
-export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetProps) {
+export function NewAppSheet({ open, onOpenChange, organizations, onSuccess }: NewAppSheetProps) {
   const [iconPreview, setIconPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
@@ -53,6 +56,10 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
   } = useForm<NewAppFormValues>({
     resolver: zodResolver(newAppSchema),
     mode: 'onChange',
+    defaultValues: {
+      appName: '',
+      orgSlug: '',
+    },
   })
 
   const platform = watch('platform')
@@ -94,9 +101,36 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  function onSubmit(_data: NewAppFormValues) {
-    // TODO: Call API to create app
-    handleClose()
+  async function onSubmit(data: NewAppFormValues) {
+    const org = organizations.find((o) => o.slug === data.orgSlug)
+    if (!org) {
+      toast.error('Selected organization not found.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const res = await fetch('/api/v1/apps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.appName, platform: data.platform, orgId: org.id }),
+      })
+
+      const json = await res.json() as { data?: unknown; error?: { message?: string } }
+
+      if (!res.ok) {
+        toast.error(json.error?.message ?? 'Failed to create app.')
+        return
+      }
+
+      toast.success('App created successfully.')
+      onSuccess?.()
+      handleClose()
+    } catch {
+      toast.error('An unexpected error occurred.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function handleClose() {
@@ -211,7 +245,7 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
                 >
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectItem value="IOS">iOS</SelectItem>
                   <SelectItem value="ANDROID">Android</SelectItem>
                 </SelectContent>
@@ -241,12 +275,18 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
                 >
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.slug} value={org.slug}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
+                <SelectContent position="popper">
+                  {organizations.length === 0 ? (
+                    <div className="px-2 py-3 text-center text-sm text-muted-foreground">
+                      No organizations yet. Create or join one first.
+                    </div>
+                  ) : (
+                    organizations.map((org) => (
+                      <SelectItem key={org.slug} value={org.slug}>
+                        {org.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {errors.orgSlug && (
@@ -278,7 +318,7 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
                 >
                   <SelectValue placeholder="Select release type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectItem value="ALPHA">Alpha</SelectItem>
                   <SelectItem value="BETA">Beta</SelectItem>
                   <SelectItem value="RELEASE_CANDIDATE">Release Candidate</SelectItem>
@@ -305,10 +345,10 @@ export function NewAppSheet({ open, onOpenChange, organizations }: NewAppSheetPr
             <Button
               type="submit"
               className="flex-1"
-              disabled={!isValid}
+              disabled={!isValid || isSubmitting}
               style={{ backgroundColor: '#0077b6' }}
             >
-              Create App
+              {isSubmitting ? 'Creating…' : 'Create App'}
             </Button>
           </div>
         </form>

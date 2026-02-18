@@ -45,8 +45,18 @@ export async function requireAppAccess(
 }
 
 /**
- * Verify that a user holds at least `minimumRole` in the organization that
- * owns the app. Super-admins bypass the role check but the app must still exist.
+ * Verify that a user holds at least `minimumRole` for the given app.
+ *
+ * Resolution order:
+ *  1. Super-admins bypass all checks (app must still exist).
+ *  2. AppMembership — if the user has an explicit per-app role override, that
+ *     role is used for the permission check.
+ *  3. Org-level Membership — fallback when no app-specific override exists.
+ *
+ * Note: The returned `membership` is always the org-level Membership record
+ * (or null for super-admins not in the org). Callers that need the effective
+ * role should rely on the permission check performed here rather than reading
+ * `result.membership.role` directly.
  */
 export async function requireAppRole(
   appId: string,
@@ -79,7 +89,13 @@ export async function requireAppRole(
     }
   }
 
-  if (ROLE_LEVEL[membership.role] < ROLE_LEVEL[minimumRole]) {
+  // Check for a per-app role override; fall back to the org-level role.
+  const appMembership = await db.appMembership.findUnique({
+    where: { appId_userId: { appId, userId } },
+  })
+  const resolvedRole = appMembership?.role ?? membership.role
+
+  if (ROLE_LEVEL[resolvedRole] < ROLE_LEVEL[minimumRole]) {
     return { error: errorResponse('FORBIDDEN', 'Insufficient permissions', 403) }
   }
 

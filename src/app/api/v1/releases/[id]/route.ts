@@ -70,7 +70,7 @@ export async function DELETE(
 
   const release = await db.release.findUnique({
     where: { id: params.id },
-    select: { id: true, appId: true, fileKey: true },
+    select: { id: true, appId: true, fileKey: true, app: { select: { orgId: true } } },
   })
 
   if (!release) {
@@ -98,6 +98,7 @@ export async function DELETE(
   const { ipAddress, userAgent } = extractRequestMeta(request)
   void createAuditLog({
     userId: user.id,
+    orgId: release.app.orgId,
     action: 'delete',
     entityType: 'release',
     entityId: params.id,

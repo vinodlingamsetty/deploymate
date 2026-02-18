@@ -4,7 +4,7 @@ import { Calendar, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { MockRelease } from '@/types/app'
-import { getReleaseTypeLabel, RELEASE_TYPE_COLORS } from '@/types/app'
+import { getReleaseTypeLabel, RELEASE_TYPE_COLORS, SIGNING_TYPE_LABELS } from '@/types/app'
 
 interface ReleaseCardProps {
   release: MockRelease
@@ -45,6 +45,17 @@ export function ReleaseCard({ release }: ReleaseCardProps) {
               >
                 {getReleaseTypeLabel(release.releaseType)}
               </span>
+              {release.signingType && SIGNING_TYPE_LABELS[release.signingType] && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    backgroundColor: SIGNING_TYPE_LABELS[release.signingType].bg,
+                    color: SIGNING_TYPE_LABELS[release.signingType].text,
+                  }}
+                >
+                  {SIGNING_TYPE_LABELS[release.signingType].label}
+                </span>
+              )}
             </div>
 
             <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">

@@ -8,15 +8,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReleaseCard } from '@/components/apps/release-card'
 import { CreateAppGroupSheet } from '@/components/apps/create-app-group-sheet'
 import { ManageAppGroupSheet } from '@/components/apps/manage-app-group-sheet'
+import { AppMembersTab } from '@/components/apps/app-members-tab'
 import { MOCK_APP_DISTRIBUTION_GROUPS, MOCK_APP_GROUP_DETAILS } from '@/lib/mock-data'
 import type { MockAppDistGroupDetail, MockRelease } from '@/types/app'
 
 interface AppTabsProps {
   releases: MockRelease[]
   appId: string
+  isAdmin?: boolean
 }
 
-export function AppTabs({ releases, appId }: AppTabsProps) {
+export function AppTabs({ releases, appId, isAdmin = false }: AppTabsProps) {
   const [createSheetOpen, setCreateSheetOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MockAppDistGroupDetail | null>(null)
@@ -39,6 +41,11 @@ export function AppTabs({ releases, appId }: AppTabsProps) {
           <TabsTrigger value="groups" className="hidden md:inline-flex">
             Distribution Groups
           </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="members" className="hidden md:inline-flex">
+              Members
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="releases" className="mt-4 space-y-3">
@@ -112,6 +119,12 @@ export function AppTabs({ releases, appId }: AppTabsProps) {
             </p>
           )}
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="members" className="mt-4">
+            <AppMembersTab appId={appId} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <CreateAppGroupSheet

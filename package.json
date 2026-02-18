@@ -13,6 +13,8 @@
     "worker:build": "esbuild src/worker.ts --bundle --platform=node --outfile=dist/worker.js --external:@prisma/client --external:@node-rs/argon2",
     "docker:dev": "docker compose -f docker-compose.dev.yml up",
     "docker:prod": "docker compose up -d",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "docs:dev": "cd docs-site && npm run start",
     "docs:build": "cd docs-site && npm run build"
   },
@@ -24,6 +26,7 @@
     "@google-cloud/storage": "^7.19.0",
     "@hookform/resolvers": "^5.2.2",
     "@node-rs/argon2": "^2.0.2",
+    "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.3.0",
     "adm-zip": "^0.5.16",
     "bullmq": "^5.69.2",
@@ -34,6 +37,8 @@
     "next": "^14.2.18",
     "next-auth": "5.0.0-beta.30",
     "next-themes": "^0.4.6",
+    "nodemailer": "^8.0.1",
+    "pg": "^8.18.0",
     "pino": "^10.3.1",
     "plist": "^3.1.0",
     "radix-ui": "^1.4.3",
@@ -47,6 +52,8 @@
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
     "@types/node": "^22.10.2",
+    "@types/nodemailer": "^7.0.10",
+    "@types/pg": "^8.16.0",
     "@types/plist": "^3.0.5",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -61,6 +68,8 @@
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.0.18"
   }
 }

@@ -15,6 +15,13 @@ const registerBodySchema = z.object({
 })
 
 export async function POST(request: Request) {
+  if (process.env.DISABLE_REGISTRATION === 'true') {
+    return NextResponse.json(
+      { error: { code: 'FORBIDDEN', message: 'Registration is disabled on this instance' } },
+      { status: 403 }
+    )
+  }
+
   try {
     const body = await request.json()
     const parsed = registerBodySchema.safeParse(body)
@@ -32,34 +39,37 @@ export async function POST(request: Request) {
     const { db } = await import('@/lib/db')
     const { hashPassword } = await import('@/lib/auth-utils')
 
-    const existing = await db.user.findUnique({
-      where: { email: emailLower },
-    })
-
-    if (existing) {
-      return NextResponse.json(
-        { error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists.' } },
-        { status: 409 }
-      )
-    }
+    const passwordHash = await hashPassword(password)
 
     const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS ?? '')
       .split(',')
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean)
-    const isSuperAdmin = superAdminEmails.includes(emailLower)
 
-    const passwordHash = await hashPassword(password)
+    const user = await db.$transaction(async (tx) => {
+      const existing = await tx.user.findUnique({ where: { email: emailLower } })
+      if (existing) return null
 
-    await db.user.create({
-      data: {
-        email: emailLower,
-        passwordHash,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        isSuperAdmin,
-      },
+      const userCount = await tx.user.count()
+      const isSuperAdmin = userCount === 0 || superAdminEmails.includes(emailLower)
+
+      return tx.user.create({
+        data: {
+          email: emailLower,
+          passwordHash,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          isSuperAdmin,
+        },
+      })
     })
+
+    if (user === null) {
+      return NextResponse.json(
+        { error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists.' } },
+        { status: 409 }
+      )
+    }
 
     return NextResponse.json({ data: { success: true }, meta: {} })
   } catch (err) {

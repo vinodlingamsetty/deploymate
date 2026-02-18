@@ -34,12 +34,19 @@ export async function processBinaryParsing(job: Job<BinaryParsingJobData>): Prom
         fileSize: fileBuffer.length,
         minOSVersion: metadata.minOSVersion,
         extractedBundleId: metadata.bundleId,
+        signingType: metadata.signingType,
+        provisioningName: metadata.provisioningName,
+        teamName: metadata.teamName,
+        provisioningExpiry: metadata.provisioningExpiry,
         status: 'READY',
       },
     })
 
     if (updated.count === 0) {
-      log.warn('Release was not in PROCESSING status; skipping update to avoid race condition')
+      log.warn(
+        { releaseId: job.data.releaseId, jobId: job.id, attemptsMade: job.attemptsMade },
+        'Release was not in PROCESSING status; skipping update (likely duplicate or retried job)',
+      )
     }
   })
 

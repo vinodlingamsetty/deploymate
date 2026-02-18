@@ -18,7 +18,7 @@ interface DashboardShellProps {
     email?: string | null
     image?: string | null
   }
-  organizations: Array<{ name: string; slug: string }>
+  organizations: Array<{ id: string; name: string; slug: string }>
   children: React.ReactNode
 }
 

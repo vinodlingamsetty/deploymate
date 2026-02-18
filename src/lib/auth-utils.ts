@@ -30,6 +30,17 @@ export async function verifyPassword(hashValue: string, password: string): Promi
 }
 
 /**
+ * Hash a 6-digit OTP code using HMAC-SHA256 for deterministic, fast lookup.
+ */
+export function hashOtp(code: string): string {
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+  if (!secret) {
+    throw new Error('AUTH_SECRET is not set — cannot hash OTP')
+  }
+  return createHmac('sha256', secret).update(code).digest('hex')
+}
+
+/**
  * Hash an API token using HMAC-SHA256 for deterministic, fast lookup.
  * Unlike Argon2, HMAC is safe here because API tokens are high-entropy random values.
  */

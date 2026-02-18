@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { requireAppRole, requireAppAccess } from '@/lib/permissions'
 import { getStorageAdapter } from '@/lib/storage'
 import { parseBinary } from '@/lib/binary-parser'
 import { resolveGroupMembers } from '@/lib/group-resolver'
@@ -30,12 +31,11 @@ export async function POST(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const { db } = await import('@/lib/db')
+  const roleResult = await requireAppRole(params.id, session.user.id, 'MANAGER', session.user.isSuperAdmin)
+  if (roleResult.error) return roleResult.error
+  const { app } = roleResult
 
-  const app = await db.app.findUnique({ where: { id: params.id } })
-  if (!app) {
-    return errorResponse('NOT_FOUND', 'App not found', 404)
-  }
+  const { db } = await import('@/lib/db')
 
   let body: unknown
   try {
@@ -134,6 +134,10 @@ export async function POST(
         fileName,
         minOSVersion: metadata.minOSVersion,
         extractedBundleId: metadata.bundleId,
+        signingType: metadata.signingType,
+        provisioningName: metadata.provisioningName,
+        teamName: metadata.teamName,
+        provisioningExpiry: metadata.provisioningExpiry,
         status: 'READY',
         ...(distributionGroups && distributionGroups.length > 0
           ? {
@@ -182,12 +186,10 @@ export async function GET(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const { db } = await import('@/lib/db')
+  const accessResult = await requireAppAccess(params.id, session.user.id)
+  if (accessResult.error) return accessResult.error
 
-  const app = await db.app.findUnique({ where: { id: params.id } })
-  if (!app) {
-    return errorResponse('NOT_FOUND', 'App not found', 404)
-  }
+  const { db } = await import('@/lib/db')
 
   const releases = await db.release.findMany({
     where: { appId: params.id },

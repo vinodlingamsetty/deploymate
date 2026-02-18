@@ -2,7 +2,7 @@ import { parseIPA } from './ipa-parser'
 import { parseAPK } from './apk-parser'
 import type { ParsedBinaryMetadata } from './types'
 
-export type { IPAMetadata, APKMetadata, ParsedBinaryMetadata } from './types'
+export type { IPAMetadata, APKMetadata, ParsedBinaryMetadata, ProvisioningType, ProvisioningInfo } from './types'
 
 export function parseBinary(buffer: Buffer, platform: 'IOS' | 'ANDROID'): ParsedBinaryMetadata {
   try {
@@ -14,6 +14,10 @@ export function parseBinary(buffer: Buffer, platform: 'IOS' | 'ANDROID'): Parsed
         buildNumber: meta.buildNumber,
         appName: meta.appName,
         minOSVersion: meta.minimumOSVersion,
+        signingType: meta.provisioning?.signingType ?? null,
+        provisioningName: meta.provisioning?.profileName ?? null,
+        teamName: meta.provisioning?.teamName ?? null,
+        provisioningExpiry: meta.provisioning?.expirationDate ?? null,
       }
     } else {
       const meta = parseAPK(buffer)
@@ -23,6 +27,10 @@ export function parseBinary(buffer: Buffer, platform: 'IOS' | 'ANDROID'): Parsed
         buildNumber: meta.versionCode !== null ? String(meta.versionCode) : null,
         appName: meta.appName,
         minOSVersion: meta.minSdkVersion !== null ? `Android API ${meta.minSdkVersion}` : null,
+        signingType: null,
+        provisioningName: null,
+        teamName: null,
+        provisioningExpiry: null,
       }
     }
   } catch {
@@ -32,6 +40,10 @@ export function parseBinary(buffer: Buffer, platform: 'IOS' | 'ANDROID'): Parsed
       buildNumber: null,
       appName: null,
       minOSVersion: null,
+      signingType: null,
+      provisioningName: null,
+      teamName: null,
+      provisioningExpiry: null,
     }
   }
 }

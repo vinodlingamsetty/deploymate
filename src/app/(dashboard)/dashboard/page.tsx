@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { auth } from '@/lib/auth'
-import { MOCK_APPS } from '@/lib/mock-data'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { AppCard } from '@/components/dashboard/app-card'
 import { AppListRow } from '@/components/dashboard/app-list-row'
@@ -61,16 +60,50 @@ async function DashboardContent({ searchParams }: DashboardPageProps) {
 
   const { org, platform, type, view, search } = searchParams
 
+  const { db } = await import('@/lib/db')
+
+  const memberships = await db.membership.findMany({
+    where: { userId: session!.user.id },
+    include: { org: { select: { id: true, name: true, slug: true } } },
+    orderBy: { org: { name: 'asc' } },
+  })
+  const allOrgs = memberships.map((m) => ({ id: m.org.id, name: m.org.name, slug: m.org.slug }))
+
+  const apps = await db.app.findMany({
+    where: { organization: { memberships: { some: { userId: session!.user.id } } } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      organization: { select: { name: true, slug: true } },
+      releases: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { version: true, releaseType: true, createdAt: true },
+      },
+    },
+  })
+
+  const allApps: MockApp[] = apps.map((app) => ({
+    id: app.id,
+    name: app.name,
+    platform: app.platform,
+    iconUrl: app.iconUrl,
+    org: { name: app.organization.name, slug: app.organization.slug },
+    latestRelease: app.releases[0]
+      ? {
+          version: app.releases[0].version,
+          releaseType: app.releases[0].releaseType,
+          createdAt: app.releases[0].createdAt.toISOString(),
+        }
+      : null,
+    testerCount: 0,
+    totalDownloads: 0,
+  }))
+
   const sanitizedSearch = search?.slice(0, 256)
-  const filteredApps = filterApps(MOCK_APPS, { org, platform, type, search: sanitizedSearch })
+  const filteredApps = filterApps(allApps, { org, platform, type, search: sanitizedSearch })
 
   const isListView = view === 'list'
   const hasActiveFilters = Boolean(org || platform || type || search)
-
-  // Collect unique orgs for the filter dropdown
-  const allOrgs = Array.from(
-    new Map(MOCK_APPS.map((a) => [a.org.slug, a.org])).values()
-  )
 
   return (
     <div className="space-y-6">

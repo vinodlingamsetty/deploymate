@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { isPrismaError } from '@/lib/db'
 import { z } from 'zod'
 
 const updateGroupSchema = z.object({
@@ -11,6 +12,8 @@ const updateGroupSchema = z.object({
 async function loadOrgGroupAndCheckAccess(
   groupId: string,
   userId: string,
+  isSuperAdmin: boolean,
+  requireManager = false,
 ) {
   if (!groupId.trim()) return { error: errorResponse('BAD_REQUEST', 'Invalid group ID', 400) }
 
@@ -22,10 +25,15 @@ async function loadOrgGroupAndCheckAccess(
   })
   if (!group) return { error: errorResponse('NOT_FOUND', 'Group not found', 404) }
 
-  const membership = await db.membership.findUnique({
-    where: { userId_orgId: { userId, orgId: group.orgId } },
-  })
-  if (!membership) return { error: errorResponse('FORBIDDEN', 'You do not have access to this group', 403) }
+  if (!isSuperAdmin) {
+    const membership = await db.membership.findUnique({
+      where: { userId_orgId: { userId, orgId: group.orgId } },
+    })
+    if (!membership) return { error: errorResponse('FORBIDDEN', 'You do not have access to this group', 403) }
+    if (requireManager && membership.role === 'TESTER') {
+      return { error: errorResponse('FORBIDDEN', 'Insufficient permissions', 403) }
+    }
+  }
 
   return { group, db }
 }
@@ -39,7 +47,7 @@ export async function GET(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id)
+  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id, session.user.isSuperAdmin)
   if ('error' in result) return result.error
   const { db } = result
 
@@ -102,7 +110,7 @@ export async function PATCH(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id)
+  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id, session.user.isSuperAdmin, true)
   if ('error' in result) return result.error
   const { db } = result
 
@@ -136,12 +144,7 @@ export async function PATCH(
       updatedAt: updated.updatedAt.toISOString(),
     })
   } catch (err: unknown) {
-    if (
-      typeof err === 'object' &&
-      err !== null &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2002'
-    ) {
+    if (isPrismaError(err, 'P2002')) {
       return errorResponse('CONFLICT', 'A group with this name already exists for this organization', 409)
     }
     throw err
@@ -157,11 +160,18 @@ export async function DELETE(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
-  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id)
+  const result = await loadOrgGroupAndCheckAccess(params.groupId, session.user.id, session.user.isSuperAdmin, true)
   if ('error' in result) return result.error
   const { db } = result
 
-  await db.orgDistGroup.delete({ where: { id: params.groupId } })
+  try {
+    await db.orgDistGroup.delete({ where: { id: params.groupId } })
+  } catch (err: unknown) {
+    if (isPrismaError(err, 'P2025')) {
+      return errorResponse('NOT_FOUND', 'Group not found', 404)
+    }
+    throw err
+  }
 
   return successResponse({ deleted: true })
 }

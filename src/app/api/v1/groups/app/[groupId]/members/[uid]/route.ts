@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { isPrismaError } from '@/lib/db'
 
 export async function DELETE(
   _request: Request,
@@ -42,12 +43,7 @@ export async function DELETE(
       },
     })
   } catch (err: unknown) {
-    if (
-      typeof err === 'object' &&
-      err !== null &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2025'
-    ) {
+    if (isPrismaError(err, 'P2025')) {
       return errorResponse('NOT_FOUND', 'Member not found in this group', 404)
     }
     throw err

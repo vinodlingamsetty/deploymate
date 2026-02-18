@@ -16,7 +16,7 @@ import { NewAppSheet } from '@/components/dashboard/new-app-sheet'
 
 interface DashboardHeaderProps {
   firstName: string
-  organizations: Array<{ name: string; slug: string }>
+  organizations: Array<{ id: string; name: string; slug: string }>
   currentOrg: string
   currentPlatform: string
   currentType: string
@@ -34,6 +34,10 @@ export function DashboardHeader({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [sheetOpen, setSheetOpen] = useState(false)
+
+  const onAppCreated = useCallback(() => {
+    router.refresh()
+  }, [router])
 
   const updateParam = useCallback(
     (key: string, value: string) => {
@@ -170,6 +174,7 @@ export function DashboardHeader({
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         organizations={organizations}
+        onSuccess={onAppCreated}
       />
     </div>
   )

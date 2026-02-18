@@ -25,9 +25,20 @@ interface ProfileTabProps {
     avatarUrl: string | null
     isSuperAdmin: boolean
   }
+  memberships: Array<{
+    id: string
+    role: string
+    org: { id: string; name: string; slug: string }
+  }>
 }
 
-export function ProfileTab({ user }: ProfileTabProps) {
+const ROLE_BADGE: Record<string, { label: string; color: string }> = {
+  ADMIN: { label: 'Admin', color: '#f97316' },
+  MANAGER: { label: 'Manager', color: '#0077b6' },
+  TESTER: { label: 'Tester', color: '#6b7280' },
+}
+
+export function ProfileTab({ user, memberships }: ProfileTabProps) {
   const [firstName, setFirstName] = useState(user.firstName ?? '')
   const [lastName, setLastName] = useState(user.lastName ?? '')
   const [saving, setSaving] = useState(false)
@@ -168,6 +179,57 @@ export function ProfileTab({ user }: ProfileTabProps) {
             Change Password
           </Button>
         </div>
+      </div>
+
+      <div className="mt-8 max-w-lg space-y-4">
+        <h2 className="text-base font-semibold">Your Access</h2>
+
+        {user.isSuperAdmin && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Platform role:</span>
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+              style={{ backgroundColor: '#03045e' }}
+            >
+              Super Admin
+            </span>
+          </div>
+        )}
+
+        {memberships.length > 0 ? (
+          <div className="rounded-lg border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40">
+                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Organization</th>
+                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberships.map((m) => {
+                  const badge = ROLE_BADGE[m.role] ?? { label: m.role, color: '#6b7280' }
+                  return (
+                    <tr key={m.id} className="border-b last:border-0">
+                      <td className="px-4 py-2">{m.org.name}</td>
+                      <td className="px-4 py-2">
+                        <span
+                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+                          style={{ backgroundColor: badge.color }}
+                        >
+                          {badge.label}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          !user.isSuperAdmin && (
+            <p className="text-sm text-muted-foreground">You are not a member of any organization.</p>
+          )
+        )}
       </div>
 
       <Dialog open={passwordDialogOpen} onOpenChange={(open) => {

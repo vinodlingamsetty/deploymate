@@ -1,5 +1,7 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { isPrismaError } from '@/lib/db'
+import { requireAppRole } from '@/lib/permissions'
 import { z } from 'zod'
 
 const memberSchema = z.object({
@@ -66,23 +68,10 @@ export async function POST(
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
 
+  const roleResult = await requireAppRole(params.id, session.user.id, 'MANAGER', session.user.isSuperAdmin)
+  if (roleResult.error) return roleResult.error
+
   const { db } = await import('@/lib/db')
-
-  const app = await db.app.findUnique({
-    where: { id: params.id },
-    select: { id: true, orgId: true },
-  })
-  if (!app) {
-    return errorResponse('NOT_FOUND', 'App not found', 404)
-  }
-
-  // Verify user belongs to the org that owns this app
-  const membership = await db.membership.findUnique({
-    where: { userId_orgId: { userId: session.user.id, orgId: app.orgId } },
-  })
-  if (!membership) {
-    return errorResponse('FORBIDDEN', 'You do not have access to this app', 403)
-  }
 
   let body: unknown
   try {
@@ -146,12 +135,7 @@ export async function POST(
       201,
     )
   } catch (err: unknown) {
-    if (
-      typeof err === 'object' &&
-      err !== null &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2002'
-    ) {
+    if (isPrismaError(err, 'P2002')) {
       return errorResponse('CONFLICT', 'A group with this name already exists for this app', 409)
     }
     throw err

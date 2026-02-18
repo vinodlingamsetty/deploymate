@@ -42,7 +42,7 @@ export function SettingsContent({ user, memberships, isSuperAdmin }: SettingsCon
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <ProfileTab user={user} />
+          <ProfileTab user={user} memberships={memberships} />
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">

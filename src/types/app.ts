@@ -27,6 +27,10 @@ export interface MockRelease {
   downloadCount: number
   createdAt: string
   minOSVersion: string | null
+  signingType: string | null
+  provisioningName: string | null
+  teamName: string | null
+  provisioningExpiry: string | null
 }
 
 export interface MockDistributionGroup {
@@ -48,6 +52,13 @@ export const RELEASE_TYPE_COLORS: Record<
   ALPHA: { bg: '#90e0ef', text: '#1a1a1a' },
   BETA: { bg: '#0077b6', text: '#ffffff' },
   RELEASE_CANDIDATE: { bg: '#03045e', text: '#ffffff' },
+}
+
+export const SIGNING_TYPE_LABELS: Record<string, { label: string; bg: string; text: string }> = {
+  development: { label: 'Development', bg: '#fbbf24', text: '#1a1a1a' },
+  adhoc:       { label: 'Ad Hoc',      bg: '#0077b6', text: '#ffffff' },
+  enterprise:  { label: 'Enterprise',   bg: '#059669', text: '#ffffff' },
+  appstore:    { label: 'App Store',    bg: '#6366f1', text: '#ffffff' },
 }
 
 export function getPlatformLabel(p: Platform): string {

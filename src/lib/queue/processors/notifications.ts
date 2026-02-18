@@ -22,12 +22,28 @@ export async function processNotifications(job: Job<NotificationJobData>): Promi
     'Resolved group members for notification',
   )
 
-  // TODO: Send actual emails when email service is configured.
-  // For now, log the notification intent for each user.
+  const { db } = await import('@/lib/db')
+  const { sendNewReleaseEmail } = await import('@/lib/email')
+
   for (const userId of userIds) {
-    log.info(
-      { userId, appName: job.data.appName, version: job.data.version },
-      'Notification: new release available',
-    )
+    try {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      })
+
+      if (!user) {
+        log.warn({ userId }, 'User not found, skipping notification')
+        continue
+      }
+
+      await sendNewReleaseEmail({
+        to: user.email,
+        appName: job.data.appName,
+        version: job.data.version,
+      })
+    } catch (err) {
+      log.error({ err, userId }, 'Failed to send notification email, continuing')
+    }
   }
 }
