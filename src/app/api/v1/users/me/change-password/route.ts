@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const changePasswordSchema = z.object({
@@ -12,6 +13,11 @@ export async function POST(request: NextRequest): Promise<Response> {
   const session = await auth()
   if (!session?.user?.id) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+  }
+
+  const rl = checkRateLimit(getRateLimitKey(request, 'change-password'), { windowMs: 15 * 60 * 1000, max: 5 })
+  if (!rl.allowed) {
+    return errorResponse('RATE_LIMITED', 'Too many requests.', 429)
   }
 
   let body: unknown

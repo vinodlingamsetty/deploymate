@@ -1,16 +1,22 @@
 import { type NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 type RouteContext = { params: { id: string } }
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: RouteContext,
 ): Promise<Response> {
   const session = await auth()
   if (!session?.user?.id) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+  }
+
+  const rl = checkRateLimit(getRateLimitKey(request, 'invitation-accept'), { windowMs: 15 * 60 * 1000, max: 20 })
+  if (!rl.allowed) {
+    return errorResponse('RATE_LIMITED', 'Too many requests.', 429)
   }
 
   const { db } = await import('@/lib/db')

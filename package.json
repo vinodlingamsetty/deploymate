@@ -15,6 +15,9 @@
     "docker:prod": "docker compose up -d",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.config.integration.ts",
+    "test:integration:watch": "vitest --config vitest.config.integration.ts",
+    "db:seed": "tsx prisma/seed.ts",
     "docs:dev": "cd docs-site && npm run start",
     "docs:build": "cd docs-site && npm run build"
   },

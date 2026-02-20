@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import logger from '@/lib/logger'
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit'
 
 const registerBodySchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50, 'First name must be 50 characters or less'),
@@ -19,6 +20,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: { code: 'FORBIDDEN', message: 'Registration is disabled on this instance' } },
       { status: 403 }
+    )
+  }
+
+  const rl = checkRateLimit(getRateLimitKey(request, 'register'), { windowMs: 15 * 60 * 1000, max: 10 })
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: { code: 'RATE_LIMITED', message: 'Too many requests.' } },
+      { status: 429 }
     )
   }
 

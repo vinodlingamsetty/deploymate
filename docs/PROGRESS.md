@@ -26,7 +26,7 @@
 - [x] Create complete database schema (User, Organization, Membership, App, Release, Invitation, ApiToken, AppDistGroup, OrgDistGroup, AppGroupMember, OrgGroupMember, OrgGroupApp, ReleaseGroup, DownloadLog, Feedback)
 - [x] Add `AppMembership` model for per-app role overrides (with back-relations on App and User)
 - [ ] Run initial database migration (`prisma migrate dev`)
-- [ ] Seed script with demo data (organizations, apps, releases, groups)
+- [x] Seed script with demo data (organizations, apps, releases, groups)
 
 ### Authentication
 - [x] NextAuth.js v5 with credentials provider and JWT strategy
@@ -296,7 +296,7 @@
 - [x] Zod validation schemas (`src/lib/validations.ts`)
 - [x] Role enforcement on group mutation endpoints (PATCH/DELETE require MANAGER+)
 - [x] Role enforcement on `POST /api/v1/apps/:id/groups` (MANAGER+)
-- [ ] Rate limiting (optional)
+- [x] Rate limiting (register: 10/15min, login: 10/15min, change-password: 5/15min, invitation-accept: 20/15min)
 
 ---
 
@@ -431,11 +431,45 @@
 
 ---
 
+## Phase 14: Testing, Rate Limiting & Seed Data
+
+### Rate Limiting
+- [x] In-memory sliding-window rate limiter (`src/lib/rate-limit.ts`)
+- [x] Rate limit: `POST /api/auth/register` — 10 req / 15 min
+- [x] Rate limit: `POST /api/auth/[...nextauth]` (credentials callback) — 10 req / 15 min
+- [x] Rate limit: `POST /api/v1/users/me/change-password` — 5 req / 15 min
+- [x] Rate limit: `POST /api/v1/invitations/[id]/accept` — 20 req / 15 min
+
+### Seed Script
+- [x] Idempotent seed script (`prisma/seed.ts`) with 5 users, 2 orgs, 5 apps, 10 releases
+- [x] `db:seed` npm script (`tsx prisma/seed.ts`)
+
+### Unit Tests
+- [x] `src/__tests__/auth-utils.test.ts` — hashApiToken, isPrismaError
+- [x] `src/__tests__/permissions.test.ts` — requireAppAccess, requireAppRole
+
+### Integration Test Infrastructure
+- [x] `.env.test` — test DB URL + secrets (commit-safe placeholders)
+- [x] `vitest.config.integration.ts` — Vitest config for integration tests
+- [x] `src/__tests__/setup.ts` — DB lifecycle, table truncation, helper factories
+
+### Integration Tests
+- [x] `src/__tests__/integration/auth.integration.test.ts` — register endpoint (7 cases)
+- [x] `src/__tests__/integration/apps.integration.test.ts` — apps CRUD (8 cases)
+- [x] `src/__tests__/integration/organizations.integration.test.ts` — orgs CRUD (6 cases)
+- [x] `src/__tests__/integration/tokens.integration.test.ts` — tokens CRUD (6 cases)
+
+### CI/CD
+- [x] `package.json` — `test:integration`, `test:integration:watch`, `db:seed` scripts
+- [x] `.github/workflows/ci.yml` — `integration-test` job with Postgres service container
+
+---
+
 ## Quick Stats
 
 | Category | Done | Total | % |
 |----------|------|-------|---|
-| Phase 1: Foundation | 23 | 25 | 92% |
+| Phase 1: Foundation | 24 | 25 | 96% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
 | Phase 3: Dashboard & Apps | 23 | 23 | 100% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
@@ -444,14 +478,15 @@
 | Phase 5: Distribution Groups | 21 | 21 | 100% |
 | Phase 6: Organizations & Invitations | 13 | 13 | 100% |
 | Phase 7: Settings | 18 | 18 | 100% |
-| Phase 8: API Endpoints | 24 | 25 | 96% |
+| Phase 8: API Endpoints | 25 | 25 | 100% |
 | Phase 9: Storage Adapters | 7 | 7 | 100% |
 | Phase 10: Infrastructure | 13 | 13 | 100% |
 | Phase 11: Polish & Docs | 19 | 19 | 100% |
 | Phase 12: Provisioning Profile | 12 | 12 | 100% |
 | Phase 13: Email OTP, CI/CD, Docs | 19 | 19 | 100% |
-| **TOTAL** | **223** | **226** | **99%** |
+| Phase 14: Testing, Rate Limiting & Seed | 17 | 17 | 100% |
+| **TOTAL** | **242** | **243** | **100%** |
 
 ---
 
-_Last updated: 2026-02-17_
+_Last updated: 2026-02-20_
