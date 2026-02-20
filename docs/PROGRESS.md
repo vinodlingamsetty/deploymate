@@ -465,6 +465,16 @@
 
 ---
 
+## Phase 15: Upgrade & Security
+
+### Next.js 15 Migration ⚠️ CRITICAL SECURITY
+- [ ] Upgrade Next.js from 14.x to >=15.0.8 (fixes CVE GHSA-h25m-26qc-wcjf: HTTP request deserialization DoS via insecure RSC)
+- [ ] Make `params` and `searchParams` async in all page/layout components (Next.js 15 breaking change)
+- [ ] Verify build and all routes after upgrade
+- [ ] Update `next` peer deps (eslint-config-next, @types/react, etc.) to match Next.js 15
+
+---
+
 ## Quick Stats
 
 | Category | Done | Total | % |
@@ -485,7 +495,8 @@
 | Phase 12: Provisioning Profile | 12 | 12 | 100% |
 | Phase 13: Email OTP, CI/CD, Docs | 19 | 19 | 100% |
 | Phase 14: Testing, Rate Limiting & Seed | 17 | 17 | 100% |
-| **TOTAL** | **242** | **243** | **100%** |
+| Phase 15: Upgrade & Security | 0 | 4 | 0% |
+| **TOTAL** | **242** | **247** | **98%** |
 
 ---
 
