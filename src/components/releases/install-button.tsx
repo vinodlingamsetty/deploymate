@@ -20,6 +20,22 @@ function isIosDevice(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent)
 }
 
+function triggerDownload(releaseId: string): void {
+  const a = document.createElement('a')
+  a.href = `/api/v1/releases/${releaseId}/download`
+  a.download = ''
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+function getLabel(platform: Platform): string {
+  if (platform === 'IOS') {
+    return isIosDevice() ? 'Install' : 'Download IPA'
+  }
+  return 'Download APK'
+}
+
 export function InstallButton({
   releaseId,
   platform,
@@ -28,23 +44,20 @@ export function InstallButton({
   className,
 }: InstallButtonProps) {
   const handleInstall = useCallback(() => {
-    if (platform === 'IOS') {
-      if (!isIosDevice()) {
-        toast.warning('iOS install requires Safari on an iOS device')
-        return
-      }
+    if (platform === 'IOS' && isIosDevice()) {
       if (!otaToken) {
         toast.error('Unable to generate install link')
         return
       }
-      const manifestUrl = `${window.location.origin}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
+      const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
       window.location.href = `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
     } else {
-      window.location.href = `/api/v1/releases/${releaseId}/download`
+      triggerDownload(releaseId)
     }
   }, [platform, releaseId, otaToken])
 
-  const label = platform === 'IOS' ? 'Install' : 'Download APK'
+  const label = getLabel(platform)
 
   return (
     <Button
