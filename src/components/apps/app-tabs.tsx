@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Users } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,26 +10,42 @@ import { ReleaseCard } from '@/components/apps/release-card'
 import { CreateAppGroupSheet } from '@/components/apps/create-app-group-sheet'
 import { ManageAppGroupSheet } from '@/components/apps/manage-app-group-sheet'
 import { AppMembersTab } from '@/components/apps/app-members-tab'
-import { MOCK_APP_DISTRIBUTION_GROUPS, MOCK_APP_GROUP_DETAILS } from '@/lib/mock-data'
-import type { MockAppDistGroupDetail, MockRelease } from '@/types/app'
+import type { MockAppDistGroup, MockAppDistGroupDetail, MockRelease } from '@/types/app'
 
 interface AppTabsProps {
   releases: MockRelease[]
   appId: string
   isAdmin?: boolean
+  initialGroups?: MockAppDistGroup[]
 }
 
-export function AppTabs({ releases, appId, isAdmin = false }: AppTabsProps) {
+export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [] }: AppTabsProps) {
   const [createSheetOpen, setCreateSheetOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MockAppDistGroupDetail | null>(null)
 
-  const groups = MOCK_APP_DISTRIBUTION_GROUPS.filter((g) => g.appId === appId)
+  // Use passed groups or fallback to empty (mock data removed for groups list)
+  const groups = initialGroups
 
-  function handleManageGroup(groupId: string) {
-    const detail = MOCK_APP_GROUP_DETAILS[groupId] ?? null
-    setActiveGroup(detail)
-    setManageSheetOpen(true)
+  async function handleManageGroup(groupId: string) {
+    try {
+      const res = await fetch(`/api/v1/groups/app/${groupId}`)
+      if (!res.ok) throw new Error('Failed to load group')
+      const json = await res.json()
+
+      // The API returns the group object with members array
+      // We calculate memberCount from that array to match the interface
+      const groupDetail: MockAppDistGroupDetail = {
+        ...json.data,
+        memberCount: json.data.members.length,
+      }
+
+      setActiveGroup(groupDetail)
+      setManageSheetOpen(true)
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to load group details')
+    }
   }
 
   return (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -39,16 +40,18 @@ export function CreateAppGroupSheet({
   onOpenChange,
   appId,
 }: CreateAppGroupSheetProps) {
+  const router = useRouter()
   const [groupName, setGroupName] = useState('')
   const [memberEmail, setMemberEmail] = useState('')
   const [memberRole, setMemberRole] = useState<GroupMemberRole>('TESTER')
   const [members, setMembers] = useState<PendingMember[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const canAddMember =
     isValidEmail(memberEmail) &&
     !members.some((m) => m.email === memberEmail.trim())
 
-  const canCreate = groupName.trim().length > 0 && members.length > 0
+  const canCreate = groupName.trim().length > 0 && members.length >0
 
   function handleAddMember() {
     if (!canAddMember) return
@@ -61,11 +64,36 @@ export function CreateAppGroupSheet({
     setMembers((prev) => prev.filter((m) => m.email !== email))
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!canCreate) return
-    console.log('Create app group:', { appId, name: groupName, members })
-    toast.success('Distribution group created')
-    handleClose()
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/v1/apps/${appId}/groups`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: groupName,
+          members: members.map((m) => ({ email: m.email, role: m.role })),
+        }),
+      })
+
+      const json = await res.json()
+
+      if (!res.ok) {
+        toast.error(json.error?.message ?? 'Failed to create group')
+        return
+      }
+
+      toast.success('Distribution group created')
+      router.refresh()
+      handleClose()
+    } catch (err) {
+      console.error(err)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function handleClose() {

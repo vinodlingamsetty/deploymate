@@ -6,6 +6,7 @@
  * Uses upsert throughout so re-runs are safe.
  */
 
+import 'dotenv/config'
 import { PrismaClient, Role, Platform, ReleaseType } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { hash } from '@node-rs/argon2'

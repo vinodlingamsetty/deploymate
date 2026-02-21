@@ -4,6 +4,7 @@
  *
  * Requires REDIS_URL to be set — exits with error if missing.
  */
+import 'dotenv/config'
 import { Worker } from 'bullmq'
 import pino from 'pino'
 

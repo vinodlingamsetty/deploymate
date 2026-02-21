@@ -115,6 +115,7 @@
 - [x] Sheet sliding from right (max-w-md)
 - [x] Form fields: App Name*, Platform* (iOS/Android), Organization*, Release Type*
 - [x] App icon drag & drop upload
+- [ ] Remove app icon upload (icons will be extracted from binary instead)
 - [x] Create button disabled until all required fields valid
 - [x] Cancel button (grey, red on hover)
 - [x] Real API call (`POST /api/v1/apps`) with success/error toasts and `router.refresh()`
@@ -481,7 +482,7 @@
 |----------|------|-------|---|
 | Phase 1: Foundation | 24 | 25 | 96% |
 | Phase 2: Layout & Navigation | 12 | 12 | 100% |
-| Phase 3: Dashboard & Apps | 23 | 23 | 100% |
+| Phase 3: Dashboard & Apps | 23 | 24 | 96% |
 | Phase 4a: Release UI | 9 | 9 | 100% |
 | Phase 4b: API + Storage | 4 | 4 | 100% |
 | Phase 4c: Download & Install | 6 | 6 | 100% |
@@ -496,7 +497,7 @@
 | Phase 13: Email OTP, CI/CD, Docs | 19 | 19 | 100% |
 | Phase 14: Testing, Rate Limiting & Seed | 17 | 17 | 100% |
 | Phase 15: Upgrade & Security | 0 | 4 | 0% |
-| **TOTAL** | **242** | **247** | **98%** |
+| **TOTAL** | **242** | **248** | **97.6%** |
 
 ---
 
