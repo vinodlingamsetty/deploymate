@@ -39,7 +39,7 @@ export function ReleaseDetailsContent({
       />
 
       <div className="mt-6">
-        <ReleaseDetailsStats release={release} />
+        <ReleaseDetailsStats release={release} platform={platform} />
       </div>
 
       <Separator className="mt-6" />

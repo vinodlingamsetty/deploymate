@@ -1,11 +1,12 @@
-import { Building2, Calendar, Download, HardDrive, Shield, Smartphone } from 'lucide-react'
+import { Award, Calendar, Download, HardDrive, Shield, Smartphone } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
-import type { MockRelease } from '@/types/app'
+import type { MockRelease, Platform } from '@/types/app'
 import { SIGNING_TYPE_LABELS } from '@/types/app'
 
 interface ReleaseDetailsStatsProps {
   release: MockRelease
+  platform: Platform
 }
 
 function formatBytes(bytes: number): string {
@@ -22,13 +23,28 @@ function formatDate(value: string | Date): string {
   })
 }
 
-export function ReleaseDetailsStats({ release }: ReleaseDetailsStatsProps) {
+function getCertificateType(signingType: string | null): string {
+  switch (signingType) {
+    case 'development':
+      return 'Development'
+    case 'adhoc':
+    case 'appstore':
+      return 'Distribution'
+    case 'enterprise':
+      return 'Enterprise'
+    default:
+      return 'Unknown'
+  }
+}
+
+export function ReleaseDetailsStats({ release, platform }: ReleaseDetailsStatsProps) {
   const signingLabel = release.signingType ? SIGNING_TYPE_LABELS[release.signingType] : undefined
+  const showSigningInfo = platform === 'IOS'
 
   return (
     <>
       {/* Desktop layout */}
-      <div className={`hidden sm:grid gap-4 ${signingLabel ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <div className={`hidden sm:grid gap-4 ${showSigningInfo ? 'grid-cols-3' : 'grid-cols-2'}`}>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -73,20 +89,20 @@ export function ReleaseDetailsStats({ release }: ReleaseDetailsStatsProps) {
           </CardContent>
         </Card>
 
-        {signingLabel && (
+        {showSigningInfo && (
           <>
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Shield className="size-4 shrink-0" aria-hidden="true" />
-                  <span>Signing</span>
+                  <span>Profile</span>
                 </div>
                 <p className="mt-1 text-lg font-semibold">
-                  {signingLabel?.label ?? 'Unknown'}
+                  {signingLabel?.label ?? 'Not Signed'}
                 </p>
-                {release.provisioningExpiry && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Expires {formatDate(release.provisioningExpiry)}
+                {release.provisioningName && (
+                  <p className="mt-0.5 text-xs text-muted-foreground truncate" title={release.provisioningName}>
+                    {release.provisioningName}
                   </p>
                 )}
               </CardContent>
@@ -95,17 +111,18 @@ export function ReleaseDetailsStats({ release }: ReleaseDetailsStatsProps) {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Building2 className="size-4 shrink-0" aria-hidden="true" />
-                  <span>Team</span>
+                  <Award className="size-4 shrink-0" aria-hidden="true" />
+                  <span>Certificate</span>
                 </div>
                 <p className="mt-1 text-lg font-semibold">
-                  {release.teamName ?? '—'}
+                  {getCertificateType(release.signingType)}
                 </p>
-                {release.provisioningName && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {release.provisioningName}
-                  </p>
-                )}
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="truncate" title={release.teamName ?? '—'}>{release.teamName ?? '—'}</p>
+                  {release.provisioningExpiry && (
+                    <p>Expires {formatDate(release.provisioningExpiry)}</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </>
@@ -158,20 +175,20 @@ export function ReleaseDetailsStats({ release }: ReleaseDetailsStatsProps) {
           </CardContent>
         </Card>
 
-        {signingLabel && (
+        {showSigningInfo && (
           <>
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Shield className="size-3.5 shrink-0" aria-hidden="true" />
-                  <span>Signing</span>
+                  <span>Profile</span>
                 </div>
                 <p className="mt-1 text-sm font-semibold">
-                  {signingLabel?.label ?? 'Unknown'}
+                  {signingLabel?.label ?? 'Not Signed'}
                 </p>
-                {release.provisioningExpiry && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Exp. {formatDate(release.provisioningExpiry)}
+                {release.provisioningName && (
+                  <p className="mt-0.5 text-xs text-muted-foreground truncate" title={release.provisioningName}>
+                    {release.provisioningName}
                   </p>
                 )}
               </CardContent>
@@ -180,17 +197,18 @@ export function ReleaseDetailsStats({ release }: ReleaseDetailsStatsProps) {
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Building2 className="size-3.5 shrink-0" aria-hidden="true" />
-                  <span>Team</span>
+                  <Award className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span>Certificate</span>
                 </div>
                 <p className="mt-1 text-sm font-semibold">
-                  {release.teamName ?? '—'}
+                  {getCertificateType(release.signingType)}
                 </p>
-                {release.provisioningName && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {release.provisioningName}
-                  </p>
-                )}
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="truncate" title={release.teamName ?? '—'}>{release.teamName ?? '—'}</p>
+                  {release.provisioningExpiry && (
+                    <p>Exp. {formatDate(release.provisioningExpiry)}</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </>

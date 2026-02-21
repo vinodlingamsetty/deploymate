@@ -1,8 +1,24 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, Download } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Calendar, Download, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { InstallButton } from '@/components/releases/install-button'
 import type { MockRelease, Platform } from '@/types/app'
 import { getReleaseTypeLabel, RELEASE_TYPE_COLORS, SIGNING_TYPE_LABELS } from '@/types/app'
@@ -27,7 +43,30 @@ function formatDate(isoString: string): string {
 }
 
 export function ReleaseCard({ release, platform, otaToken }: ReleaseCardProps) {
+  const router = useRouter()
+  const [isDeleting, setIsDeleting] = useState(false)
   const colors = RELEASE_TYPE_COLORS[release.releaseType]
+
+  async function handleDelete() {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/v1/releases/${release.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to delete release')
+      }
+
+      toast.success('Release deleted')
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to delete release')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <Card>
@@ -96,6 +135,39 @@ export function ReleaseCard({ release, platform, otaToken }: ReleaseCardProps) {
             >
               <Link href={`/releases/${release.id}`}>View Details</Link>
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 size-4" aria-hidden="true" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Release</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete v{release.version} ({release.buildNumber})? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDelete()
+                    }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </CardContent>

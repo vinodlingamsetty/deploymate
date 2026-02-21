@@ -56,8 +56,9 @@ export const authConfig = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.isSuperAdmin = token.isSuperAdmin as boolean
+        // Prefer token.id; fall back to token.sub (NextAuth always sets sub = user.id on sign-in)
+        session.user.id = (token.id ?? token.sub) as string
+        session.user.isSuperAdmin = (token.isSuperAdmin as boolean | undefined) ?? false
       }
       return session
     },

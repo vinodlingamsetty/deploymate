@@ -117,7 +117,7 @@ export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
 
   const otaTokens: Record<string, string> =
     app.platform === 'IOS'
-      ? Object.fromEntries(dbReleases.map((r) => [r.id, generateOtaToken(r.id)]))
+      ? Object.fromEntries(dbReleases.map((r) => [r.id, generateOtaToken(r.id, session.user.id)]))
       : {}
 
   return (

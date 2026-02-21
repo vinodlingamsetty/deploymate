@@ -52,6 +52,54 @@ The dev server will be available at [http://localhost:3000](http://localhost:300
 
 ---
 
+## Testing iOS OTA Installs on a Real Device
+
+iOS enforces HTTPS with a valid TLS certificate for OTA app installs via the `itms-services://` protocol. A local IP address (e.g. `192.168.0.12`) will never have a valid certificate, so iOS will refuse to install.
+
+**In production** this is handled automatically — Caddy obtains a Let's Encrypt certificate for your domain.
+
+**In local development**, expose port 3000 through a tunnel that provides a trusted HTTPS URL, then point DeployMate at that URL.
+
+### Option A: Cloudflare Tunnel (recommended — free, no account needed)
+Install cloudflared and start a quick tunnel:
+
+```bash
+# macOS
+brew install cloudflare/cloudflare/cloudflared
+# or download directly: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+
+cloudflared tunnel --url http://localhost:3000
+```
+Cloudflare prints a URL like `https://abc123.trycloudflare.com`. Copy it and continue to the [Set the tunnel URL](#set-the-tunnel-url) step.
+
+[Official docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/)
+
+### Option B: ngrok (free tier — requires a free account)
+Sign up at [ngrok.com](https://dashboard.ngrok.com/signup) (no credit card), install, and run:
+
+```bash
+brew install ngrok/ngrok/ngrok
+ngrok config add-authtoken <your-token> # one-time setup
+ngrok http 3000
+```
+ngrok prints a URL like `https://abc123.ngrok-free.app`. Copy it and continue to the next step.
+
+[Official docs](https://ngrok.com/docs/getting-started/)
+
+### Set the tunnel URL
+Add both variables to your `.env` file (they must match):
+
+```bash
+NEXT_PUBLIC_APP_URL=https://your-tunnel-url
+APP_URL=https://your-tunnel-url
+```
+
+Restart the dev server (`pnpm dev`) — `NEXT_PUBLIC_APP_URL` is embedded at build time by Next.js and requires a restart to take effect.
+
+Then open the tunnel URL on your iOS device in Safari. Navigate to a release and tap **Install** — iOS will now accept the certificate and install the app.
+
+---
+
 ## Environment Variables
 
 | Variable | Description | Default |
@@ -59,6 +107,8 @@ The dev server will be available at [http://localhost:3000](http://localhost:300
 | `DATABASE_URL` | PostgreSQL connection string | required |
 | `AUTH_SECRET` | Secret used to sign session tokens (minimum 32 chars) | required |
 | `NEXTAUTH_URL` | Canonical URL of the deployment (e.g. `http://localhost:3000`) | required |
+| `NEXT_PUBLIC_APP_URL` | Public HTTPS base URL for iOS OTA install links (local dev only — use a tunnel URL) | optional |
+| `APP_URL` | Server-side override for the same URL used in OTA manifest plist (must match `NEXT_PUBLIC_APP_URL`) | optional |
 | `STORAGE_PROVIDER` | Storage backend: `local`, `s3`, `gcs`, or `azure` | `local` |
 | `SMTP_HOST` | SMTP server hostname for email notifications | optional |
 | `SMTP_PORT` | SMTP server port | `587` |

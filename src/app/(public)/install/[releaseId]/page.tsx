@@ -27,7 +27,7 @@ export default async function InstallPage({ params }: InstallPageProps) {
   const platform = release.app.platform as Platform
   const releaseType = release.releaseType as ReleaseTypeName
   const colors = RELEASE_TYPE_COLORS[releaseType]
-  const otaToken = platform === 'IOS' ? generateOtaToken(release.id) : undefined
+  const otaToken = platform === 'IOS' ? generateOtaToken(release.id, 'public-install') : undefined
 
   const PlatformIcon = platform === 'IOS' ? TabletSmartphone : Smartphone
 
