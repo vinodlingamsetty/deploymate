@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { generateOtaToken } from '@/lib/ota-token'
 import { AppDetailsHeader } from '@/components/apps/app-details-header'
 import { AppStats } from '@/components/apps/app-stats'
 import { AppTabs } from '@/components/apps/app-tabs'
@@ -12,8 +13,8 @@ interface AppDetailsPageProps {
 
 export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
   const session = await auth()
-  if (!session?.user) {
-    notFound()
+  if (!session?.user?.id) {
+    redirect('/login')
   }
 
   const app = await db.app.findUnique({
@@ -114,6 +115,11 @@ export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
     createdAt: g.createdAt.toISOString(),
   }))
 
+  const otaTokens: Record<string, string> =
+    app.platform === 'IOS'
+      ? Object.fromEntries(dbReleases.map((r) => [r.id, generateOtaToken(r.id)]))
+      : {}
+
   return (
     <div className="space-y-6">
       <AppDetailsHeader app={adaptedApp} />
@@ -123,6 +129,8 @@ export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
         appId={app.id}
         isAdmin={isAdmin}
         initialGroups={adaptedGroups}
+        platform={adaptedApp.platform}
+        otaTokens={otaTokens}
       />
     </div>
   )

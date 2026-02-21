@@ -3,11 +3,14 @@ import { Calendar, Download } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import type { MockRelease } from '@/types/app'
+import { InstallButton } from '@/components/releases/install-button'
+import type { MockRelease, Platform } from '@/types/app'
 import { getReleaseTypeLabel, RELEASE_TYPE_COLORS, SIGNING_TYPE_LABELS } from '@/types/app'
 
 interface ReleaseCardProps {
   release: MockRelease
+  platform: Platform
+  otaToken?: string
 }
 
 function formatBytes(bytes: number): string {
@@ -23,7 +26,7 @@ function formatDate(isoString: string): string {
   })
 }
 
-export function ReleaseCard({ release }: ReleaseCardProps) {
+export function ReleaseCard({ release, platform, otaToken }: ReleaseCardProps) {
   const colors = RELEASE_TYPE_COLORS[release.releaseType]
 
   return (
@@ -79,14 +82,12 @@ export function ReleaseCard({ release }: ReleaseCardProps) {
 
           {/* Right: actions */}
           <div className="flex shrink-0 flex-col gap-2">
-            <Button
-              size="sm"
-              style={{ backgroundColor: colors.bg, color: colors.text }}
-              aria-label={`Download v${release.version}`}
-            >
-              <Download className="mr-1.5 size-3.5" aria-hidden="true" />
-              Download
-            </Button>
+            <InstallButton
+              releaseId={release.id}
+              platform={platform}
+              otaToken={otaToken}
+              colors={colors}
+            />
             <Button
               variant="outline"
               size="sm"

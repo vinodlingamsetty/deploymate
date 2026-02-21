@@ -10,16 +10,18 @@ import { ReleaseCard } from '@/components/apps/release-card'
 import { CreateAppGroupSheet } from '@/components/apps/create-app-group-sheet'
 import { ManageAppGroupSheet } from '@/components/apps/manage-app-group-sheet'
 import { AppMembersTab } from '@/components/apps/app-members-tab'
-import type { MockAppDistGroup, MockAppDistGroupDetail, MockRelease } from '@/types/app'
+import type { MockAppDistGroup, MockAppDistGroupDetail, MockRelease, Platform } from '@/types/app'
 
 interface AppTabsProps {
   releases: MockRelease[]
   appId: string
   isAdmin?: boolean
   initialGroups?: MockAppDistGroup[]
+  platform: Platform
+  otaTokens?: Record<string, string>
 }
 
-export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [] }: AppTabsProps) {
+export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [], platform, otaTokens }: AppTabsProps) {
   const [createSheetOpen, setCreateSheetOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MockAppDistGroupDetail | null>(null)
@@ -68,7 +70,12 @@ export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [] }
         <TabsContent value="releases" className="mt-4 space-y-3">
           {releases.length > 0 ? (
             releases.map((release) => (
-              <ReleaseCard key={release.id} release={release} />
+              <ReleaseCard
+                key={release.id}
+                release={release}
+                platform={platform}
+                otaToken={otaTokens?.[release.id]}
+              />
             ))
           ) : (
             <p className="py-8 text-center text-sm text-muted-foreground">
