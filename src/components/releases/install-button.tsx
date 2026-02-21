@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -49,13 +49,6 @@ async function triggerDownload(releaseId: string, platform: Platform): Promise<v
   URL.revokeObjectURL(url)
 }
 
-function getLabel(platform: Platform): string {
-  if (platform === 'IOS') {
-    return isIosDevice() ? 'Install' : 'Download IPA'
-  }
-  return 'Download APK'
-}
-
 export function InstallButton({
   releaseId,
   platform,
@@ -64,9 +57,14 @@ export function InstallButton({
   className,
 }: InstallButtonProps) {
   const [downloading, setDownloading] = useState(false)
+  const [iosDevice, setIosDevice] = useState(false)
+
+  useEffect(() => {
+    setIosDevice(isIosDevice())
+  }, [])
 
   const handleInstall = useCallback(async () => {
-    if (platform === 'IOS' && isIosDevice()) {
+    if (platform === 'IOS' && iosDevice) {
       if (!otaToken) {
         toast.error('Unable to generate install link')
         return
@@ -84,9 +82,9 @@ export function InstallButton({
         setDownloading(false)
       }
     }
-  }, [platform, releaseId, otaToken])
+  }, [platform, releaseId, otaToken, iosDevice])
 
-  const label = getLabel(platform)
+  const label = platform === 'IOS' && iosDevice ? 'Install' : platform === 'IOS' ? 'Download IPA' : 'Download APK'
 
   return (
     <Button
