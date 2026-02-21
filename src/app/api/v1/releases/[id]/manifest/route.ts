@@ -58,7 +58,7 @@ export async function GET(
       return errorResponse('SERVER_ERROR', 'APP_URL is not a valid URL', 500)
     }
   }
-  const downloadUrl = `${rawOrigin}/api/v1/releases/${release.id}/download`
+  const downloadUrl = `${rawOrigin}/api/v1/releases/${release.id}/download?token=${encodeURIComponent(token!)}`
 
   const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

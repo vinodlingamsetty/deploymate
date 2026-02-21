@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth'
+import { verifyOtaToken } from '@/lib/ota-token'
 import { errorResponse } from '@/lib/api-utils'
 import { getStorageAdapter } from '@/lib/storage'
 
@@ -6,9 +7,21 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+  const url = new URL(request.url)
+  const token = url.searchParams.get('token')
+  let userId: string | null = null
+
+  if (token) {
+    userId = verifyOtaToken(token, params.id)
+    if (!userId) {
+      return errorResponse('UNAUTHORIZED', 'Invalid or expired OTA token', 401)
+    }
+  } else {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+    }
+    userId = session.user.id
   }
 
   const { db } = await import('@/lib/db')
@@ -39,7 +52,7 @@ export async function GET(
     db.downloadLog.create({
       data: {
         releaseId: release.id,
-        userId: session.user.id,
+        userId,
         ipAddress,
         userAgent,
       },
