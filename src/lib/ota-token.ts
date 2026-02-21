@@ -3,9 +3,9 @@ import { createHmac } from 'crypto'
 const DEFAULT_EXPIRY_SECONDS = 3600 // 1 hour
 
 function getSecret(): string {
-  const secret = process.env.OTA_SECRET ?? process.env.AUTH_SECRET
+  const secret = process.env.OTA_SECRET ?? process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
   if (!secret) {
-    throw new Error('OTA_SECRET or AUTH_SECRET must be set')
+    throw new Error('OTA_SECRET, AUTH_SECRET, or NEXTAUTH_SECRET must be set')
   }
   return secret
 }
