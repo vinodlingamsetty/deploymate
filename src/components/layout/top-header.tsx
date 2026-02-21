@@ -82,8 +82,9 @@ export function TopHeader({ user, onMenuToggle }: TopHeaderProps) {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
   }
 
-  function handleSignOut() {
-    signOut({ callbackUrl: '/login' })
+  async function handleSignOut() {
+    await signOut({ redirect: false })
+    router.push('/login')
   }
 
   // Clear the debounce timer on unmount to prevent state updates after unmount

@@ -67,3 +67,6 @@ Thumbs.db
 docs-site/.docusaurus/
 docs-site/build/
 docs-site/node_modules/
+
+# Local file upload storage — never commit binary app files
+/data/
