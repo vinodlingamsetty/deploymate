@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback } from 'react'
-import { Download } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -20,13 +20,33 @@ function isIosDevice(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent)
 }
 
-function triggerDownload(releaseId: string): void {
+async function triggerDownload(releaseId: string, platform: Platform): Promise<void> {
+  const response = await fetch(`/api/v1/releases/${releaseId}/download`)
+
+  if (!response.ok) {
+    let message = 'Download failed'
+    try {
+      const body = await response.json() as { error?: { message?: string } }
+      if (body.error?.message) {
+        message = body.error.message
+      }
+    } catch {
+      // Response wasn't JSON — use status text
+      message = `Download failed (${response.status} ${response.statusText})`
+    }
+    throw new Error(message)
+  }
+
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const ext = platform === 'IOS' ? 'ipa' : 'apk'
   const a = document.createElement('a')
-  a.href = `/api/v1/releases/${releaseId}/download`
-  a.download = ''
+  a.href = url
+  a.download = `release.${ext}`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 function getLabel(platform: Platform): string {
@@ -43,7 +63,9 @@ export function InstallButton({
   colors,
   className,
 }: InstallButtonProps) {
-  const handleInstall = useCallback(() => {
+  const [downloading, setDownloading] = useState(false)
+
+  const handleInstall = useCallback(async () => {
     if (platform === 'IOS' && isIosDevice()) {
       if (!otaToken) {
         toast.error('Unable to generate install link')
@@ -53,7 +75,14 @@ export function InstallButton({
       const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
       window.location.href = `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
     } else {
-      triggerDownload(releaseId)
+      setDownloading(true)
+      try {
+        await triggerDownload(releaseId, platform)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Download failed')
+      } finally {
+        setDownloading(false)
+      }
     }
   }, [platform, releaseId, otaToken])
 
@@ -64,10 +93,13 @@ export function InstallButton({
       className={className}
       style={{ backgroundColor: colors.bg, color: colors.text }}
       onClick={handleInstall}
+      disabled={downloading}
       aria-label={label}
     >
-      <Download className="size-4 sm:mr-2" aria-hidden="true" />
-      <span className="hidden sm:inline">{label}</span>
+      {downloading
+        ? <Loader2 className="size-4 sm:mr-2 animate-spin" aria-hidden="true" />
+        : <Download className="size-4 sm:mr-2" aria-hidden="true" />}
+      <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
     </Button>
   )
 }

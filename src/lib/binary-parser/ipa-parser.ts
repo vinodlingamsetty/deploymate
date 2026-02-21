@@ -1,5 +1,6 @@
 import AdmZip from 'adm-zip'
 import plist from 'plist'
+import bplistParser from 'bplist-parser'
 import logger from '@/lib/logger'
 import type { IPAMetadata, ProvisioningInfo, ProvisioningType } from './types'
 
@@ -95,37 +96,48 @@ export function parseIPA(buffer: Buffer): IPAMetadata {
   }
 
   const plistData = infoPlistEntry.getData()
-  let parsed: Record<string, unknown>
+  let parsed: Record<string, unknown> | null = null
 
   try {
-    // IPA Info.plist files are XML plists
+    // Try XML plist first
     parsed = plist.parse(plistData.toString('utf-8')) as Record<string, unknown>
   } catch {
-    // Binary plist — would need a separate binary plist parser; return partial metadata
-    return { ...EMPTY_METADATA }
+    // Fall back to binary plist
+    try {
+      const results = bplistParser.parseBuffer(plistData)
+      if (results && results.length > 0 && typeof results[0] === 'object' && results[0] !== null) {
+        parsed = results[0] as Record<string, unknown>
+      }
+    } catch (bplistErr) {
+      logger.warn(
+        { error: bplistErr instanceof Error ? bplistErr.message : String(bplistErr) },
+        'Failed to parse Info.plist as both XML and binary plist',
+      )
+    }
   }
 
-  const bundleId = typeof parsed.CFBundleIdentifier === 'string'
+  const bundleId = parsed && typeof parsed.CFBundleIdentifier === 'string'
     ? parsed.CFBundleIdentifier
     : null
 
-  const version = typeof parsed.CFBundleShortVersionString === 'string'
+  const version = parsed && typeof parsed.CFBundleShortVersionString === 'string'
     ? parsed.CFBundleShortVersionString
     : null
 
-  const buildNumber = typeof parsed.CFBundleVersion === 'string'
+  const buildNumber = parsed && typeof parsed.CFBundleVersion === 'string'
     ? parsed.CFBundleVersion
     : null
 
-  const appName =
-    (typeof parsed.CFBundleDisplayName === 'string' ? parsed.CFBundleDisplayName : null) ??
-    (typeof parsed.CFBundleName === 'string' ? parsed.CFBundleName : null)
+  const appName = parsed
+    ? ((typeof parsed.CFBundleDisplayName === 'string' ? parsed.CFBundleDisplayName : null) ??
+       (typeof parsed.CFBundleName === 'string' ? parsed.CFBundleName : null))
+    : null
 
-  const minimumOSVersion = typeof parsed.MinimumOSVersion === 'string'
+  const minimumOSVersion = parsed && typeof parsed.MinimumOSVersion === 'string'
     ? parsed.MinimumOSVersion
     : null
 
-  const deviceFamily = Array.isArray(parsed.UIDeviceFamily)
+  const deviceFamily = parsed && Array.isArray(parsed.UIDeviceFamily)
     ? (parsed.UIDeviceFamily as unknown[])
     : []
 
