@@ -47,7 +47,7 @@ export async function GET(
     release.extractedBundleId ?? release.app.bundleId ?? 'com.unknown'
 
   // Build the download URL — validate HTTPS in production (required for iOS OTA)
-  const rawOrigin = process.env.APP_URL ?? url.origin
+  const rawOrigin = (process.env.APP_URL ?? url.origin).replace(/\/$/, '')
   if (process.env.NODE_ENV === 'production') {
     try {
       const originUrl = new URL(rawOrigin)

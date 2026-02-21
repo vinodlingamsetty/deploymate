@@ -63,41 +63,72 @@ export function InstallButton({
     setIosDevice(isIosDevice())
   }, [])
 
-  const handleInstall = useCallback(async () => {
-    if (platform === 'IOS' && iosDevice) {
-      if (!otaToken) {
-        toast.error('Unable to generate install link')
-        return
-      }
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
-      const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
-      window.location.href = `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
-    } else {
-      setDownloading(true)
-      try {
-        await triggerDownload(releaseId, platform)
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Download failed')
-      } finally {
-        setDownloading(false)
-      }
+  const handleDownload = useCallback(async () => {
+    setDownloading(true)
+    try {
+      await triggerDownload(releaseId, platform)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Download failed')
+    } finally {
+      setDownloading(false)
     }
-  }, [platform, releaseId, otaToken, iosDevice])
+  }, [releaseId, platform])
+
+  // Compute the OTA href for iOS devices
+  const otaHref = iosDevice && platform === 'IOS' && otaToken
+    ? (() => {
+        const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin).replace(/\/$/, '')
+        const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
+        return `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
+      })()
+    : null
 
   const label = platform === 'IOS' && iosDevice ? 'Install' : platform === 'IOS' ? 'Download IPA' : 'Download APK'
 
+  const buttonStyle = { backgroundColor: colors.bg, color: colors.text }
+  const icon = downloading
+    ? <Loader2 className="size-4 sm:mr-2 animate-spin" aria-hidden="true" />
+    : <Download className="size-4 sm:mr-2" aria-hidden="true" />
+  const labelText = <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
+
+  // iOS with valid OTA token: render as native <a> so Safari handles itms-services:// directly
+  if (otaHref) {
+    return (
+      <Button asChild className={className} style={buttonStyle} aria-label={label}>
+        <a href={otaHref}>
+          {icon}
+          {labelText}
+        </a>
+      </Button>
+    )
+  }
+
+  // iOS device but missing token: show error on tap
+  if (iosDevice && platform === 'IOS') {
+    return (
+      <Button
+        className={className}
+        style={buttonStyle}
+        onClick={() => toast.error('Unable to generate install link')}
+        aria-label={label}
+      >
+        {icon}
+        {labelText}
+      </Button>
+    )
+  }
+
+  // Non-iOS: download via fetch
   return (
     <Button
       className={className}
-      style={{ backgroundColor: colors.bg, color: colors.text }}
-      onClick={handleInstall}
+      style={buttonStyle}
+      onClick={handleDownload}
       disabled={downloading}
       aria-label={label}
     >
-      {downloading
-        ? <Loader2 className="size-4 sm:mr-2 animate-spin" aria-hidden="true" />
-        : <Download className="size-4 sm:mr-2" aria-hidden="true" />}
-      <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
+      {icon}
+      {labelText}
     </Button>
   )
 }

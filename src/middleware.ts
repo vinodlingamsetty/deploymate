@@ -9,6 +9,7 @@ const publicPrefixPaths = ['/install', '/invitations']
 
 const PUBLIC_API_PATTERNS = [
   /^\/api\/v1\/releases\/[^/]+\/manifest$/,
+  /^\/api\/v1\/releases\/[^/]+\/download$/,
 ]
 
 export default auth((req) => {
