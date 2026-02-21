@@ -1,11 +1,20 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CheckCircle2, Upload, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, Loader2, Upload, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -32,6 +41,7 @@ interface SelectedGroup {
 interface SelectedFile {
   name: string
   size: number
+  file: File
 }
 
 function formatFileSize(bytes: number): string {
@@ -47,12 +57,15 @@ export function UploadReleaseSheet({
   appId,
   orgSlug,
 }: UploadReleaseSheetProps) {
+  const router = useRouter()
   const [step, setStep] = useState<1 | 2>(1)
   const [releaseNotes, setReleaseNotes] = useState('')
+  const [releaseType, setReleaseType] = useState<'ALPHA' | 'BETA' | 'RELEASE_CANDIDATE'>('BETA')
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([])
   const [showGroupWarning, setShowGroupWarning] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [appGroups, setAppGroups] = useState<{ id: string; name: string; memberCount: number }[]>([])
   const [orgGroups, setOrgGroups] = useState<{ id: string; name: string; memberCount: number }[]>([])
   const [groupsLoading, setGroupsLoading] = useState(false)
@@ -84,7 +97,7 @@ export function UploadReleaseSheet({
   const canProceedToStep2 = releaseNotes.trim().length > 0 && selectedFile !== null
 
   function handleFileSelect(file: File) {
-    setSelectedFile({ name: file.name, size: file.size })
+    setSelectedFile({ name: file.name, size: file.size, file })
   }
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -124,17 +137,59 @@ export function UploadReleaseSheet({
     setShowGroupWarning(false)
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     if (selectedGroups.length === 0) {
       setShowGroupWarning(true)
       return
     }
-    console.log({
-      releaseNotes,
-      file: selectedFile ? { name: selectedFile.name, size: selectedFile.size } : null,
-      distributionGroups: selectedGroups,
-    })
-    handleClose()
+    if (!selectedFile?.file) return
+    setIsPublishing(true)
+    try {
+      // Step 1: Get signed upload URL
+      const urlRes = await fetch(`/api/v1/apps/${appId}/releases/upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          contentType: selectedFile.file.type || 'application/octet-stream',
+        }),
+      })
+      if (!urlRes.ok) {
+        const errData = await urlRes.json().catch(() => null)
+        throw new Error(errData?.error?.message ?? `Failed to get upload URL (${urlRes.status})`)
+      }
+      const { data: { uploadUrl, fileKey } } = await urlRes.json()
+
+      // Step 2: Upload file to signed URL
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: selectedFile.file,
+        headers: { 'Content-Type': selectedFile.file.type || 'application/octet-stream' },
+      })
+      if (!uploadRes.ok) {
+        throw new Error(`Failed to upload file (${uploadRes.status})`)
+      }
+
+      // Step 3: Create release record
+      const releaseRes = await fetch(`/api/v1/apps/${appId}/releases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileKey, releaseNotes, releaseType, distributionGroups: selectedGroups }),
+      })
+      if (!releaseRes.ok) {
+        const errData = await releaseRes.json().catch(() => null)
+        throw new Error(errData?.error?.message ?? `Failed to create release (${releaseRes.status})`)
+      }
+
+      toast.success('Release published successfully')
+      router.refresh()
+      handleClose()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish release')
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   function handleClose() {
@@ -145,10 +200,12 @@ export function UploadReleaseSheet({
   function resetState() {
     setStep(1)
     setReleaseNotes('')
+    setReleaseType('BETA')
     setSelectedFile(null)
     setIsDragging(false)
     setSelectedGroups([])
     setShowGroupWarning(false)
+    setIsPublishing(false)
     setAppGroups([])
     setOrgGroups([])
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -187,6 +244,24 @@ export function UploadReleaseSheet({
                     onChange={(e) => setReleaseNotes(e.target.value)}
                     aria-required="true"
                   />
+                </div>
+
+                {/* Release Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="release-type">Release Type</Label>
+                  <Select
+                    value={releaseType}
+                    onValueChange={(v) => setReleaseType(v as 'ALPHA' | 'BETA' | 'RELEASE_CANDIDATE')}
+                  >
+                    <SelectTrigger id="release-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALPHA">Alpha</SelectItem>
+                      <SelectItem value="BETA">Beta</SelectItem>
+                      <SelectItem value="RELEASE_CANDIDATE">Release Candidate</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* File Upload */}
@@ -378,10 +453,11 @@ export function UploadReleaseSheet({
                 <Button
                   type="button"
                   style={{ backgroundColor: '#0077b6' }}
-                  disabled={selectedGroups.length === 0}
+                  disabled={selectedGroups.length === 0 || isPublishing}
                   onClick={handlePublish}
                 >
-                  Publish
+                  {isPublishing && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {isPublishing ? 'Publishing…' : 'Publish'}
                 </Button>
                 <Button
                   type="button"

@@ -79,6 +79,9 @@ async function DashboardContent({ searchParams }: DashboardPageProps) {
         take: 1,
         select: { version: true, releaseType: true, createdAt: true },
       },
+      appGroups: {
+        select: { _count: { select: { members: true } } },
+      },
     },
   })
 
@@ -95,7 +98,7 @@ async function DashboardContent({ searchParams }: DashboardPageProps) {
           createdAt: app.releases[0].createdAt.toISOString(),
         }
       : null,
-    testerCount: 0,
+    testerCount: app.appGroups.reduce((sum, g) => sum + g._count.members, 0),
     totalDownloads: 0,
   }))
 

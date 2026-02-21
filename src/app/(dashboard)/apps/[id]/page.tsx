@@ -82,7 +82,7 @@ export default async function AppDetailsPage({ params }: AppDetailsPageProps) {
           createdAt: app.releases[0].createdAt.toISOString(),
         }
       : null,
-    testerCount: 0, // Placeholder
+    testerCount: appGroups.reduce((sum, g) => sum + g._count.members, 0),
     totalDownloads: downloads._sum.downloadCount ?? 0,
   }
 
