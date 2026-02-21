@@ -61,6 +61,14 @@ export const SIGNING_TYPE_LABELS: Record<string, { label: string; bg: string; te
   appstore:    { label: 'App Store',    bg: '#6366f1', text: '#ffffff' },
 }
 
+export function isValidPlatform(value: unknown): value is Platform {
+  return value === 'IOS' || value === 'ANDROID'
+}
+
+export function isValidReleaseType(value: unknown): value is ReleaseTypeName {
+  return value === 'ALPHA' || value === 'BETA' || value === 'RELEASE_CANDIDATE'
+}
+
 export function getPlatformLabel(p: Platform): string {
   return p === 'IOS' ? 'iOS' : 'Android'
 }

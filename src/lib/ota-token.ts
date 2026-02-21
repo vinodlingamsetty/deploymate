@@ -24,35 +24,41 @@ function sign(payload: string, secret: string): string {
 
 export function generateOtaToken(
   releaseId: string,
+  userId: string,
   expiresInSeconds = DEFAULT_EXPIRY_SECONDS,
 ): string {
   const secret = getSecret()
   const exp = Math.floor(Date.now() / 1000) + expiresInSeconds
-  const payload = base64UrlEncode(JSON.stringify({ releaseId, exp }))
+  const payload = base64UrlEncode(JSON.stringify({ releaseId, userId, exp }))
   const signature = sign(payload, secret)
   return `${payload}.${signature}`
 }
 
-export function verifyOtaToken(token: string, releaseId: string): boolean {
+/**
+ * Verifies an OTA token for the given release.
+ * Returns the userId encoded in the token if valid, or null if invalid/expired.
+ */
+export function verifyOtaToken(token: string, releaseId: string): string | null {
   try {
     const secret = getSecret()
     const [payload, signature] = token.split('.')
-    if (!payload || !signature) return false
+    if (!payload || !signature) return null
 
     const expectedSignature = sign(payload, secret)
-    if (signature !== expectedSignature) return false
+    if (signature !== expectedSignature) return null
 
     const decoded = JSON.parse(base64UrlDecode(payload)) as {
       releaseId: string
+      userId: string
       exp: number
     }
-    if (decoded.releaseId !== releaseId) return false
+    if (decoded.releaseId !== releaseId) return null
 
     const now = Math.floor(Date.now() / 1000)
-    if (decoded.exp < now) return false
+    if (decoded.exp < now) return null
 
-    return true
+    return decoded.userId
   } catch {
-    return false
+    return null
   }
 }
