@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Upload, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { MOCK_APP_DISTRIBUTION_GROUPS, MOCK_ORG_DISTRIBUTION_GROUPS } from '@/lib/mock-data'
 import type { Platform } from '@/types/app'
 
 interface UploadReleaseSheetProps {
@@ -54,9 +53,27 @@ export function UploadReleaseSheet({
   const [isDragging, setIsDragging] = useState(false)
   const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([])
   const [showGroupWarning, setShowGroupWarning] = useState(false)
+  const [appGroups, setAppGroups] = useState<{ id: string; name: string; memberCount: number }[]>([])
+  const [orgGroups, setOrgGroups] = useState<{ id: string; name: string; memberCount: number }[]>([])
+  const [groupsLoading, setGroupsLoading] = useState(false)
 
-  const appGroups = MOCK_APP_DISTRIBUTION_GROUPS.filter((g) => g.appId === appId)
-  const orgGroups = MOCK_ORG_DISTRIBUTION_GROUPS.filter((g) => g.orgSlug === orgSlug)
+  useEffect(() => {
+    if (!open) return
+    setGroupsLoading(true)
+    Promise.all([
+      fetch(`/api/v1/apps/${appId}/groups`).then((r) => r.json()),
+      fetch(`/api/v1/organizations/${orgSlug}/groups`).then((r) => r.json()),
+    ])
+      .then(([appRes, orgRes]) => {
+        setAppGroups(Array.isArray(appRes.data) ? appRes.data : [])
+        setOrgGroups(Array.isArray(orgRes.data) ? orgRes.data : [])
+      })
+      .catch(() => {
+        setAppGroups([])
+        setOrgGroups([])
+      })
+      .finally(() => setGroupsLoading(false))
+  }, [open, appId, orgSlug])
 
   const selectedGroupIds = new Set(selectedGroups.map((g) => g.id))
 
@@ -132,6 +149,8 @@ export function UploadReleaseSheet({
     setIsDragging(false)
     setSelectedGroups([])
     setShowGroupWarning(false)
+    setAppGroups([])
+    setOrgGroups([])
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -280,7 +299,7 @@ export function UploadReleaseSheet({
                 </p>
 
                 {/* App Groups */}
-                {appGroups.length > 0 && (
+                {!groupsLoading && appGroups.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       App Groups
@@ -308,7 +327,7 @@ export function UploadReleaseSheet({
                 )}
 
                 {/* Org Groups */}
-                {orgGroups.length > 0 && (
+                {!groupsLoading && orgGroups.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Organization Groups
@@ -335,7 +354,13 @@ export function UploadReleaseSheet({
                   </div>
                 )}
 
-                {appGroups.length === 0 && orgGroups.length === 0 && (
+                {groupsLoading && (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    Loading groups…
+                  </p>
+                )}
+
+                {!groupsLoading && appGroups.length === 0 && orgGroups.length === 0 && (
                   <p className="py-4 text-center text-sm text-muted-foreground">
                     No distribution groups available. Create groups first.
                   </p>

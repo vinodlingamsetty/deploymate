@@ -143,6 +143,7 @@
 - [x] Upload release sheet (multi-step, slides from right)
   - [x] Step 1: Release notes textarea + drag & drop file upload (.ipa/.apk)
   - [x] Step 2: Select distribution groups (checkboxes, at least one required)
+  - [x] Fetch real app + org distribution groups via API (replaced mock data)
   - [x] Publish / Back / Cancel buttons
 
 ### Release Details Page (`/releases/[id]`)
@@ -187,6 +188,7 @@
 
 ### Org-Level Groups
 - [x] Groups page (`/groups?org=[slug]`) - list all org groups
+- [x] List org groups API (`GET /api/v1/organizations/:slug/groups`)
 - [x] Create org group sheet (group name + description)
 - [x] Manage group sheet with Members and Apps tabs
 - [x] Add user sheet (email + role)
