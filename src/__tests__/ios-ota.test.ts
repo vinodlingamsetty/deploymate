@@ -15,9 +15,12 @@ describe('getIosOtaWarning', () => {
     expect(getIosOtaWarning('IOS', null)).toContain('Signing profile was not detected')
   })
 
+  it('warns for development signed iOS builds', () => {
+    expect(getIosOtaWarning('IOS', 'development')).toContain('not supported for OTA install')
+  })
+
   it('returns no warning for supported iOS signing types', () => {
     expect(getIosOtaWarning('IOS', 'adhoc')).toBeNull()
     expect(getIosOtaWarning('IOS', 'enterprise')).toBeNull()
   })
 })
-

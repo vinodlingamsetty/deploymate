@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import type { Platform } from '@/types/app'
 import { buildItmsServicesUrl, buildManifestUrl, resolveClientOtaBaseUrl } from '@/lib/ota-client'
+import { fetchOtaDiagnostics, getFirstOtaFailure, getOtaWarnings } from '@/lib/ota-diagnostics'
 
 interface InstallButtonProps {
   releaseId: string
@@ -80,6 +81,32 @@ export function InstallButton({
     }
   }, [releaseId, platform])
 
+  const handleOtaInstall = useCallback(async (otaHref: string) => {
+    if (!otaToken) {
+      toast.error('Unable to generate install link')
+      return
+    }
+
+    setDownloading(true)
+    try {
+      const diagnostics = await fetchOtaDiagnostics(releaseId, otaToken)
+      const failure = getFirstOtaFailure(diagnostics)
+      if (failure) {
+        toast.error(failure.message)
+        return
+      }
+
+      const warning = getOtaWarnings(diagnostics)[0]
+      if (warning) {
+        toast.warning(warning.message)
+      }
+
+      window.location.href = otaHref
+    } finally {
+      setDownloading(false)
+    }
+  }, [otaToken, releaseId])
+
   const browserOrigin = typeof window !== 'undefined' ? window.location.origin : null
   const baseUrl = resolveClientOtaBaseUrl(browserOrigin, process.env.NEXT_PUBLIC_APP_URL)
   const otaHref = iosDevice && platform === 'IOS' && otaToken
@@ -91,22 +118,27 @@ export function InstallButton({
   const httpsError = iosDevice && platform === 'IOS' && !!otaToken && !baseUrl
 
   const label = platform === 'IOS' && iosDevice ? 'Install' : platform === 'IOS' ? 'Download IPA' : 'Download APK'
+  const busyLabel = platform === 'IOS' && iosDevice ? 'Installing…' : 'Downloading…'
 
   const buttonStyle = { backgroundColor: colors.bg, color: colors.text }
   const icon = downloading
     ? <Loader2 className="size-4 sm:mr-2 animate-spin" aria-hidden="true" />
     : <Download className="size-4 sm:mr-2" aria-hidden="true" />
-  const labelText = <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
+  const labelText = <span className="hidden sm:inline">{downloading ? busyLabel : label}</span>
 
-  // iOS with valid OTA token over HTTPS: render as native <a> so the browser/OS
-  // handles the itms-services:// scheme.
+  // iOS with valid OTA token over HTTPS: run diagnostics first, then let iOS
+  // handle the itms-services:// scheme.
   if (otaHref) {
     return (
-      <Button asChild className={className} style={buttonStyle} aria-label={label}>
-        <a href={otaHref}>
-          {icon}
-          {labelText}
-        </a>
+      <Button
+        className={className}
+        style={buttonStyle}
+        onClick={() => void handleOtaInstall(otaHref)}
+        disabled={downloading}
+        aria-label={label}
+      >
+        {icon}
+        {labelText}
       </Button>
     )
   }
