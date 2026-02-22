@@ -5,46 +5,77 @@ title: Storage Providers
 
 # Storage Providers
 
-DeployMate supports multiple storage backends for uploaded build artifacts. Configure the provider using the `STORAGE_PROVIDER` environment variable.
+DeployMate supports multiple storage backends for uploaded artifacts. Select a provider with `STORAGE_PROVIDER`.
 
-## Local Storage
+## Local Storage (`local`)
 
-The default provider stores files on the local filesystem. Suitable for development and small deployments.
+Best for development and small self-hosted environments.
 
 ```env
 STORAGE_PROVIDER=local
-LOCAL_STORAGE_PATH=./uploads
+LOCAL_STORAGE_PATH=./data/uploads
 ```
 
-## AWS S3
+## AWS S3 (`aws-s3`)
 
-Store builds in an Amazon S3 bucket. Requires AWS credentials and a pre-created bucket.
+Works with AWS S3 and S3-compatible services (for example MinIO, Cloudflare R2).
 
 ```env
-STORAGE_PROVIDER=s3
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_S3_BUCKET=my-deploymate-bucket
-AWS_REGION=us-east-1
+STORAGE_PROVIDER=aws-s3
+S3_BUCKET=my-deploymate-bucket
+S3_REGION=us-east-1
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+# Optional
+S3_ENDPOINT=https://...
+S3_FORCE_PATH_STYLE=false
 ```
 
-## Google Cloud Storage
+## Google Cloud Storage Single-Bucket (`gcp-storage`)
 
-Store builds in a GCS bucket. Authenticate using a service account key file.
+Simple GCS mode using one bucket for all artifacts.
 
 ```env
-STORAGE_PROVIDER=gcs
+STORAGE_PROVIDER=gcp-storage
 GCS_BUCKET=my-deploymate-bucket
 GCS_PROJECT_ID=my-project
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+# Optional auth options
+GCS_KEY_FILE=/path/to/service-account.json
+# or
+GCS_CREDENTIALS={"type":"service_account",...}
 ```
 
-## Azure Blob Storage
+## Enterprise GCP Dual-Bucket (`gcp-enterprise`)
 
-Store builds in Azure Blob Storage. Requires a storage account connection string.
+Use this in enterprise GCP/VPC-SC-style deployments where internal and distribution data should be separated.
+
+- App bucket: internal assets (`icons/`, temporary/internal keys)
+- Distribution bucket: release artifacts (`releases/`, `manifests/`) for OTA/download links
 
 ```env
-STORAGE_PROVIDER=azure
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...
-AZURE_STORAGE_CONTAINER=deploymate-builds
+STORAGE_PROVIDER=gcp-enterprise
+GCS_PROJECT_ID=my-project
+GCS_APP_BUCKET=deploymate-app-prod
+GCS_DISTRIBUTION_BUCKET=deploymate-dist-prod
+DISTRIBUTION_BASE_URL=https://deploymate.example.com
+# Optional auth options
+GCS_KEY_FILE=/path/to/service-account.json
+# or
+GCS_CREDENTIALS={"type":"service_account",...}
 ```
+
+## Azure Blob Storage (`azure-blob`)
+
+```env
+STORAGE_PROVIDER=azure-blob
+AZURE_STORAGE_CONTAINER_NAME=deploymate-builds
+# Option A
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...
+# Option B
+AZURE_STORAGE_ACCOUNT_NAME=...
+AZURE_STORAGE_ACCOUNT_KEY=...
+```
+
+## OTA Note for iOS
+
+iOS OTA install requires the manifest and IPA URLs to be reachable over valid HTTPS from the device. DeployMate uses tokenized OTA URLs for this flow.

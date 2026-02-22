@@ -22,6 +22,11 @@ export function getStorageAdapter(): StorageAdapter {
       instance = new GCSStorageAdapter()
       break
     }
+    case 'gcp-enterprise': {
+      const { GCSEnterpriseStorageAdapter } = require('./gcs-enterprise-adapter') as typeof import('./gcs-enterprise-adapter')
+      instance = new GCSEnterpriseStorageAdapter()
+      break
+    }
     case 'azure-blob': {
       const { AzureBlobStorageAdapter } = require('./azure-adapter') as typeof import('./azure-adapter')
       instance = new AzureBlobStorageAdapter()
@@ -31,7 +36,7 @@ export function getStorageAdapter(): StorageAdapter {
       instance = new LocalStorageAdapter()
       break
     default:
-      throw new Error(`Unknown storage provider: "${provider}". Valid values: local, aws-s3, gcp-storage, azure-blob`)
+      throw new Error(`Unknown storage provider: "${provider}". Valid values: local, aws-s3, gcp-storage, gcp-enterprise, azure-blob`)
   }
 
   return instance

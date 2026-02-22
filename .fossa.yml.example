@@ -1,0 +1,16 @@
+# Copy to .fossa.yml and customize for your company policy.
+# FOSSA workflow runs only when .fossa.yml exists and FOSSA_API_KEY is set.
+
+version: 3
+
+project:
+  id: deploymate
+  name: DeployMate
+
+paths:
+  exclude:
+    - docs-site/build
+    - docs-site/node_modules
+    - node_modules
+
+# Optional policy/dependency settings can be added by your company.

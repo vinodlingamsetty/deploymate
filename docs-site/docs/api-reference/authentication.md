@@ -26,10 +26,12 @@ curl -H "Authorization: Bearer dm_your-token-here" \
 
 ## Token Permissions
 
-Tokens have one of two access levels:
+Tokens support scoped permissions:
 
-- **Read Only** — Can list and view apps, releases, organizations, and groups.
-- **Read & Write** — Full access including creating, updating, and deleting resources.
+- `READ`
+- `WRITE`
+- `DELETE`
+- `ADMIN`
 
 ## Response Format
 

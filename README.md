@@ -9,9 +9,9 @@ Self-hosted beta app distribution platform for iOS and Android
 - **OTA Distribution** — Install iOS `.ipa` files directly on device via the `itms-services://` protocol; Android `.apk` files served as direct downloads
 - **Distribution Groups** — Scope releases to app-level or org-level tester groups
 - **Organization Management** — Invite-only organizations with full member lifecycle management
-- **Role-Based Access Control** — Super Admin, Admin, Manager, Member, and Viewer roles
+- **Role-Based Access Control** — Super Admin plus org/app roles: Admin, Manager, and Tester
 - **API Tokens** — Scoped bearer tokens for CI/CD integration
-- **Storage Adapters** — Local filesystem, AWS S3, Google Cloud Storage, and Azure Blob Storage
+- **Storage Adapters** — Local filesystem, AWS S3, Google Cloud Storage, Azure Blob Storage, and enterprise dual-bucket GCP mode
 - **Docker Deployment** — Single `docker compose up` to run the entire stack
 - **Background Jobs** — BullMQ/Redis for async processing (notifications, artifact processing)
 - **Audit Logging** — Structured audit trail for all sensitive operations via Pino
@@ -49,6 +49,15 @@ pnpm dev
 ```
 
 The dev server will be available at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Enterprise GCP Deployment
+
+For enterprise GCP environments (Cloud Run + HTTPS Load Balancer + dual GCS buckets + Cloud SQL), see:
+
+- [Enterprise GCP deployment architecture guide](docs/enterprise-gcp-deployment-guide.md)
+- [Docs site: GCP enterprise deployment](docs-site/docs/deployment/gcp-enterprise.md)
 
 ---
 
@@ -109,7 +118,7 @@ Then open the tunnel URL on your iOS device in Safari. Navigate to a release and
 | `NEXTAUTH_URL` | Canonical URL of the deployment (e.g. `http://localhost:3000`) | required |
 | `NEXT_PUBLIC_APP_URL` | Public HTTPS base URL for iOS OTA install links (local dev only — use a tunnel URL) | optional |
 | `APP_URL` | Server-side override for the same URL used in OTA manifest plist (must match `NEXT_PUBLIC_APP_URL`) | optional |
-| `STORAGE_PROVIDER` | Storage backend: `local`, `s3`, `gcs`, or `azure` | `local` |
+| `STORAGE_PROVIDER` | Storage backend: `local`, `aws-s3`, `gcp-storage`, `gcp-enterprise`, or `azure-blob` | `local` |
 | `SMTP_HOST` | SMTP server hostname for email notifications | optional |
 | `SMTP_PORT` | SMTP server port | `587` |
 | `SMTP_USER` | SMTP authentication username | optional |
@@ -138,6 +147,13 @@ For S3, GCS, and Azure-specific variables (bucket names, credentials, regions), 
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on setting up a development environment, the pull request process, and code style expectations.
+
+---
+
+## Compliance
+
+- SBOM + license inventory + optional BYO FOSSA policy scan are documented in `docs-site/docs/compliance/fossa-and-sbom.md`.
+- Enterprise GCP deployment references are in `docs/enterprise-gcp-deployment-guide.md`.
 
 ---
 

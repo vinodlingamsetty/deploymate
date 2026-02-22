@@ -1,4 +1,4 @@
-export type StorageProvider = 'aws-s3' | 'gcp-storage' | 'azure-blob' | 'local'
+export type StorageProvider = 'aws-s3' | 'gcp-storage' | 'gcp-enterprise' | 'azure-blob' | 'local'
 
 export interface UploadResult {
   key: string

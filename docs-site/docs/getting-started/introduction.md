@@ -9,12 +9,12 @@ DeployMate is an open-source, self-hosted platform for distributing beta iOS (.i
 
 ## Key Features
 
-- **iOS & Android OTA Distribution** — Upload .ipa and .apk files and distribute them to testers via over-the-air installation links.
+- **iOS & Android OTA Distribution** — Upload .ipa and .apk files and distribute them to testers via OTA install links.
 - **Distribution Groups** — Organize testers into groups at the app or organization level for targeted releases.
-- **Role-Based Access Control** — Five roles (Super Admin, Admin, Manager, Member, Viewer) control what each user can do.
+- **Role-Based Access Control** — Super Admin plus org/app roles: Admin, Manager, and Tester.
 - **RESTful API** — Automate releases and manage resources programmatically with API tokens.
-- **Storage Adapters** — Store builds on local disk, AWS S3, Google Cloud Storage, or Azure Blob Storage.
-- **Self-Hosted** — Deploy on your own infrastructure with Docker Compose. No vendor lock-in.
+- **Storage Adapters** — Local disk, AWS S3, Google Cloud Storage, Azure Blob, and enterprise GCP dual-bucket mode.
+- **Self-Hosted** — Deploy on your own infrastructure. Docker Compose and enterprise GCP guidance are both documented.
 
 ## Architecture
 

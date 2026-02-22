@@ -59,10 +59,10 @@ GET /api/v1/organizations/:slug/members
 PATCH /api/v1/organizations/:slug/members/:id
 Content-Type: application/json
 
-{ "role": "manager" }
+{ "role": "MANAGER" }
 ```
 
-Available roles: `admin`, `manager`, `member`, `viewer`.
+Available roles: `ADMIN`, `MANAGER`, `TESTER`.
 
 ### Remove Member
 
@@ -78,7 +78,7 @@ DELETE /api/v1/organizations/:slug/members/:id
 POST /api/v1/organizations/:slug/invitations
 Content-Type: application/json
 
-{ "email": "tester@example.com", "role": "member" }
+{ "email": "tester@example.com", "role": "TESTER" }
 ```
 
 ### List Pending Invitations

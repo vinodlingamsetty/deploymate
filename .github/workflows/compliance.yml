@@ -1,0 +1,97 @@
+name: Compliance
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sbom-and-licenses:
+    name: SBOM and License Inventory
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate SBOM (CycloneDX)
+        run: npx -y @cyclonedx/cyclonedx-npm --output-file sbom.cdx.json --output-format json
+
+      - name: Generate license inventory
+        run: npx -y license-checker --json > licenses.json
+
+      - name: Enforce disallowed licenses (optional)
+        if: ${{ vars.DISALLOWED_LICENSES != '' }}
+        env:
+          DISALLOWED_LICENSES: ${{ vars.DISALLOWED_LICENSES }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs')
+
+          const disallowed = (process.env.DISALLOWED_LICENSES || '')
+            .split(',')
+            .map((v) => v.trim().toLowerCase())
+            .filter(Boolean)
+
+          const raw = fs.readFileSync('licenses.json', 'utf8')
+          const report = JSON.parse(raw)
+          const violations = []
+
+          for (const [pkg, meta] of Object.entries(report)) {
+            const license = String(meta.licenses || '').toLowerCase()
+            if (disallowed.some((blocked) => license.includes(blocked))) {
+              violations.push({ pkg, license: meta.licenses })
+            }
+          }
+
+          if (violations.length > 0) {
+            console.error('Disallowed licenses found:')
+            for (const v of violations) {
+              console.error(`- ${v.pkg}: ${v.license}`)
+            }
+            process.exit(1)
+          }
+
+          console.log('No disallowed licenses found.')
+          NODE
+
+      - name: Upload compliance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-artifacts
+          path: |
+            sbom.cdx.json
+            licenses.json
+
+  fossa:
+    name: FOSSA (BYO policy)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.FOSSA_API_KEY != '' && hashFiles('.fossa.yml') != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run FOSSA analyze/test with company policy
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+          FOSSA_ANALYZE_FLAGS: ${{ vars.FOSSA_ANALYZE_FLAGS }}
+          FOSSA_TEST_FLAGS: ${{ vars.FOSSA_TEST_FLAGS }}
+        run: |
+          npx -y fossa-cli analyze ${FOSSA_ANALYZE_FLAGS}
+          npx -y fossa-cli test ${FOSSA_TEST_FLAGS}

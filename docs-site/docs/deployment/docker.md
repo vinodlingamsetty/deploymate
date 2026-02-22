@@ -7,6 +7,8 @@ title: Docker
 
 DeployMate ships with Docker and Docker Compose configurations for production deployment.
 
+For enterprise GCP architecture guidance, see [GCP Enterprise](./gcp-enterprise.md).
+
 ## Production Deployment
 
 The included `docker-compose.yml` starts all required services:

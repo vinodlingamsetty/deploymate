@@ -54,3 +54,6 @@ server {
 - Set `client_max_body_size` (Nginx) or equivalent to accommodate large build files (100MB+).
 - Ensure `X-Forwarded-Proto` is passed correctly for HTTPS detection.
 - Set `NEXTAUTH_URL` to your public domain with HTTPS.
+- Ensure tokenized OTA endpoints remain reachable by iOS installer daemons:
+  - `/api/v1/releases/:id/manifest?token=...`
+  - `/api/v1/releases/:id/download?token=...`

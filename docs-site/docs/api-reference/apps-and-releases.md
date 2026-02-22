@@ -92,4 +92,19 @@ GET /api/v1/apps/:appId/releases/latest
 GET /api/v1/releases/:id/download
 ```
 
-Returns a signed download URL for the build artifact.
+Returns the build artifact stream. For OTA/public install flows, use the tokenized form:
+
+```
+GET /api/v1/releases/:id/download?token=<ota-token>
+```
+
+### Generate Install Link
+
+```
+POST /api/v1/releases/:id/install-link
+```
+
+Requires authentication and release access.
+
+- `IOS`: returns an `itms-services://` URL (backed by tokenized manifest/download endpoints)
+- `ANDROID`: returns a tokenized download URL

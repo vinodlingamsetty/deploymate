@@ -20,7 +20,12 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Deployment',
-      items: ['deployment/docker', 'deployment/reverse-proxy'],
+      items: ['deployment/docker', 'deployment/reverse-proxy', 'deployment/gcp-enterprise'],
+    },
+    {
+      type: 'category',
+      label: 'Compliance',
+      items: ['compliance/fossa-and-sbom'],
     },
   ],
 };
