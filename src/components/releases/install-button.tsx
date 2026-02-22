@@ -17,7 +17,12 @@ interface InstallButtonProps {
 
 function isIosDevice(): boolean {
   if (typeof navigator === 'undefined') return false
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+  // iPhone, iPod, and older iPad (pre-iPadOS 13)
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true
+  // iPad on iPadOS 13+ requests the desktop site and shows "Macintosh" in the UA.
+  // Detect it by checking for a Mac platform with touch support.
+  if (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) return true
+  return false
 }
 
 async function triggerDownload(releaseId: string, platform: Platform): Promise<void> {
@@ -95,14 +100,18 @@ export function InstallButton({
     : <Download className="size-4 sm:mr-2" aria-hidden="true" />
   const labelText = <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
 
-  // iOS with valid OTA token over HTTPS: render as native <a> so OS handles itms-services://
+  // iOS with valid OTA token over HTTPS: navigate via window.location.href so the OS
+  // handles the itms-services:// scheme reliably across Safari, Chrome, and Firefox on iOS.
   if (otaHref) {
     return (
-      <Button asChild className={className} style={buttonStyle} aria-label={label}>
-        <a href={otaHref}>
-          {icon}
-          {labelText}
-        </a>
+      <Button
+        className={className}
+        style={buttonStyle}
+        aria-label={label}
+        onClick={() => { window.location.href = otaHref }}
+      >
+        {icon}
+        {labelText}
       </Button>
     )
   }
