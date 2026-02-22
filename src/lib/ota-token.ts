@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
 
 const DEFAULT_EXPIRY_SECONDS = 3600 // 1 hour
 
@@ -45,7 +45,9 @@ export function verifyOtaToken(token: string, releaseId: string): string | null 
     if (!payload || !signature) return null
 
     const expectedSignature = sign(payload, secret)
-    if (signature !== expectedSignature) return null
+    const sigBuf = Buffer.from(signature)
+    const expBuf = Buffer.from(expectedSignature)
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) return null
 
     const decoded = JSON.parse(base64UrlDecode(payload)) as {
       releaseId: string
