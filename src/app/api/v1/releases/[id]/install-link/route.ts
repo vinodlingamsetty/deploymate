@@ -11,7 +11,7 @@ function getLinkTtlSeconds(): number {
 
   const parsed = Number(raw)
   if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_LINK_TTL_SECONDS
-  return Math.floor(parsed)
+  return Math.max(1, Math.floor(parsed))
 }
 
 function buildItmsServicesUrl(manifestUrl: string): string {

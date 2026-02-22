@@ -52,6 +52,7 @@ describe('POST /api/v1/releases/:id/install-link', () => {
       origin: 'https://deploymate.example.com',
       source: 'request',
     })
+    delete process.env.OTA_LINK_TTL_SECONDS
   })
 
   it('returns 401 when user is not authenticated', async () => {
@@ -157,5 +158,30 @@ describe('POST /api/v1/releases/:id/install-link', () => {
     }
     expect(body.data.platform).toBe('ANDROID')
     expect(body.data.downloadUrl).toContain('/api/v1/releases/rel_android/download?token=signed-token')
+  })
+
+  it('clamps fractional TTL values to a minimum of 1 second', async () => {
+    process.env.OTA_LINK_TTL_SECONDS = '0.5'
+    authMock.mockResolvedValue({
+      user: { id: 'user_1', isSuperAdmin: true },
+    })
+    releaseFindUniqueMock.mockResolvedValue({
+      id: 'rel_1',
+      app: { id: 'app_1', name: 'Example App', orgId: 'org_1', platform: 'IOS' },
+    })
+
+    const res = await POST(
+      new Request('https://deploymate.example.com/api/v1/releases/rel_1/install-link', {
+        method: 'POST',
+      }),
+      { params: { id: 'rel_1' } },
+    )
+
+    expect(res.status).toBe(200)
+    expect(generateOtaTokenMock).toHaveBeenCalledWith('rel_1', 'user_1', 1)
+    const body = await res.json() as {
+      data: { ttlSeconds: number }
+    }
+    expect(body.data.ttlSeconds).toBe(1)
   })
 })
