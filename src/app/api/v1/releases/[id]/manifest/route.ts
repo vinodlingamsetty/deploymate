@@ -7,15 +7,20 @@ export async function GET(
 ) {
   const url = new URL(request.url)
   const token = url.searchParams.get('token')
+  console.log('[ota/manifest] request url:', request.url)
+  console.log('[ota/manifest] x-forwarded-proto:', request.headers.get('x-forwarded-proto'))
 
   if (!token) {
+    console.log('[ota/manifest] missing token')
     return errorResponse('FORBIDDEN', 'Invalid or expired OTA token', 403)
   }
 
   const userId = verifyOtaToken(token, params.id)
   if (!userId) {
+    console.log('[ota/manifest] invalid or expired token for releaseId:', params.id)
     return errorResponse('FORBIDDEN', 'Invalid or expired OTA token', 403)
   }
+  console.log('[ota/manifest] token ok — userId:', userId, 'releaseId:', params.id)
 
   const { db } = await import('@/lib/db')
 
@@ -25,29 +30,46 @@ export async function GET(
   })
 
   if (!release) {
+    console.log('[ota/manifest] release not found — id:', params.id)
     return errorResponse('NOT_FOUND', 'Release not found', 404)
   }
+  console.log('[ota/manifest] release found — bundleId:', release.extractedBundleId ?? release.app.bundleId, 'app:', release.app.name)
 
-  // Verify the token's user still has access to this release's organization
-  const [membership, user] = await Promise.all([
-    db.membership.findUnique({
-      where: { userId_orgId: { userId, orgId: release.app.orgId } },
-    }),
-    db.user.findUnique({
-      where: { id: userId },
-      select: { isSuperAdmin: true },
-    }),
-  ])
+  // Verify the token's user still has access to this release's organization.
+  // Public install tokens use 'public-install' as userId — a valid signed token
+  // is sufficient authorization for those (scoped to a single release, 1-hour expiry).
+  if (userId !== 'public-install') {
+    const [membership, user] = await Promise.all([
+      db.membership.findUnique({
+        where: { userId_orgId: { userId, orgId: release.app.orgId } },
+      }),
+      db.user.findUnique({
+        where: { id: userId },
+        select: { isSuperAdmin: true },
+      }),
+    ])
 
-  if (!membership && !user?.isSuperAdmin) {
-    return errorResponse('FORBIDDEN', 'Access denied', 403)
+    if (!membership && !user?.isSuperAdmin) {
+      return errorResponse('FORBIDDEN', 'Access denied', 403)
+    }
   }
 
   const bundleId =
     release.extractedBundleId ?? release.app.bundleId ?? 'com.unknown'
 
-  // Build the download URL — validate HTTPS in production (required for iOS OTA)
-  const rawOrigin = (process.env.APP_URL ?? url.origin).replace(/\/$/, '')
+  // Build the download URL — validate HTTPS in production (required for iOS OTA).
+  // When running behind a reverse proxy (e.g. Cloudflare Tunnel) the server sees
+  // plain HTTP, so we check x-forwarded-proto to get the true client-facing protocol.
+  let rawOrigin: string
+  if (process.env.APP_URL) {
+    rawOrigin = process.env.APP_URL.replace(/\/$/, '')
+  } else {
+    const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
+    if (forwardedProto) {
+      url.protocol = forwardedProto + ':'
+    }
+    rawOrigin = url.origin
+  }
   if (process.env.NODE_ENV === 'production') {
     try {
       const originUrl = new URL(rawOrigin)
@@ -58,6 +80,7 @@ export async function GET(
       return errorResponse('SERVER_ERROR', 'APP_URL is not a valid URL', 500)
     }
   }
+  console.log('[ota/manifest] rawOrigin:', rawOrigin)
   const downloadUrl = `${rawOrigin}/api/v1/releases/${release.id}/download?token=${encodeURIComponent(token!)}`
 
   const plist = `<?xml version="1.0" encoding="UTF-8"?>
@@ -92,9 +115,10 @@ export async function GET(
 </dict>
 </plist>`
 
+  console.log('[ota/manifest] serving plist — downloadUrl:', downloadUrl)
   return new Response(plist, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'text/xml; charset=utf-8',
     },
   })
 }

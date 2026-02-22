@@ -74,14 +74,18 @@ export function InstallButton({
     }
   }, [releaseId, platform])
 
-  // Compute the OTA href for iOS devices
+  // Compute the OTA href — for all iOS browsers (itms-services:// is handled at OS level)
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '')
   const otaHref = iosDevice && platform === 'IOS' && otaToken
-    ? (() => {
-        const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin).replace(/\/$/, '')
-        const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
-        return `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
-      })()
+    ? (baseUrl.startsWith('https://')
+        ? (() => {
+            const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
+            return `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
+          })()
+        : null)   // HTTP base URL — iOS will reject; fall through to HTTPS error branch
     : null
+
+  const httpsError = iosDevice && platform === 'IOS' && !!otaToken && !baseUrl.startsWith('https://')
 
   const label = platform === 'IOS' && iosDevice ? 'Install' : platform === 'IOS' ? 'Download IPA' : 'Download APK'
 
@@ -91,7 +95,7 @@ export function InstallButton({
     : <Download className="size-4 sm:mr-2" aria-hidden="true" />
   const labelText = <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
 
-  // iOS with valid OTA token: render as native <a> so Safari handles itms-services:// directly
+  // iOS with valid OTA token over HTTPS: render as native <a> so OS handles itms-services://
   if (otaHref) {
     return (
       <Button asChild className={className} style={buttonStyle} aria-label={label}>
@@ -99,6 +103,21 @@ export function InstallButton({
           {icon}
           {labelText}
         </a>
+      </Button>
+    )
+  }
+
+  // iOS OTA requires HTTPS — NEXT_PUBLIC_APP_URL is missing or HTTP
+  if (httpsError) {
+    return (
+      <Button
+        className={className}
+        style={buttonStyle}
+        onClick={() => toast.error('iOS OTA install requires HTTPS. Set NEXT_PUBLIC_APP_URL to your public HTTPS URL.')}
+        aria-label={label}
+      >
+        {icon}
+        {labelText}
       </Button>
     )
   }
