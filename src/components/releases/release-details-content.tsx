@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Copy } from 'lucide-react'
+import { ChevronDown, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,7 @@ export function ReleaseDetailsContent({
   const [otaReadiness, setOtaReadiness] = useState<OtaDiagnosticsResult | null>(null)
   const [otaReadinessLoading, setOtaReadinessLoading] = useState(false)
   const [otaReadinessError, setOtaReadinessError] = useState<string | null>(null)
+  const [otaReadinessExpanded, setOtaReadinessExpanded] = useState(false)
   const showOtaReadiness = platform === 'IOS' && Boolean(otaToken)
 
   useEffect(() => {
@@ -109,10 +110,28 @@ export function ReleaseDetailsContent({
         </div>
       )}
 
+      <div className="mt-6">
+        <ReleaseDetailsStats release={release} platform={platform} />
+      </div>
+
+      <Separator className="mt-6" />
+
       {showOtaReadiness && (
-        <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/40">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold">iOS OTA Readiness</p>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 font-semibold text-left"
+              onClick={() => setOtaReadinessExpanded((value) => !value)}
+              aria-expanded={otaReadinessExpanded}
+              aria-label="Toggle iOS OTA readiness details"
+            >
+              <ChevronDown
+                className={`size-4 transition-transform ${otaReadinessExpanded ? 'rotate-0' : '-rotate-90'}`}
+                aria-hidden="true"
+              />
+              iOS OTA Readiness
+            </button>
             <Button
               type="button"
               variant="outline"
@@ -125,38 +144,36 @@ export function ReleaseDetailsContent({
               Copy diagnostics
             </Button>
           </div>
-          {otaReadinessLoading && (
-            <p className="mt-2 text-muted-foreground">Checking OTA prerequisites...</p>
-          )}
-          {otaReadinessError && (
-            <p className="mt-2 text-rose-600 dark:text-rose-400">{otaReadinessError}</p>
-          )}
-          {!otaReadinessLoading && otaReadiness && (
-            <div className="mt-2 space-y-1">
-              {otaReadiness.checks.map((check) => (
-                <p
-                  key={check.key}
-                  className={
-                    check.status === 'fail'
-                      ? 'text-rose-600 dark:text-rose-400'
-                      : check.status === 'warn'
-                        ? 'text-amber-700 dark:text-amber-300'
-                        : 'text-emerald-700 dark:text-emerald-300'
-                  }
-                >
-                  {check.message}
-                </p>
-              ))}
-            </div>
+          {otaReadinessExpanded && (
+            <>
+              {otaReadinessLoading && (
+                <p className="mt-2 text-muted-foreground">Checking OTA prerequisites...</p>
+              )}
+              {otaReadinessError && (
+                <p className="mt-2 text-rose-600 dark:text-rose-400">{otaReadinessError}</p>
+              )}
+              {!otaReadinessLoading && otaReadiness && (
+                <div className="mt-2 space-y-1">
+                  {otaReadiness.checks.map((check) => (
+                    <p
+                      key={check.key}
+                      className={
+                        check.status === 'fail'
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : check.status === 'warn'
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-emerald-700 dark:text-emerald-300'
+                      }
+                    >
+                      {check.message}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
-
-      <div className="mt-6">
-        <ReleaseDetailsStats release={release} platform={platform} />
-      </div>
-
-      <Separator className="mt-6" />
 
       {/* Release Notes */}
       <div className="mt-6">
