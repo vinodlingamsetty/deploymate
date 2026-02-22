@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import type { Platform } from '@/types/app'
+import { buildItmsServicesUrl, buildManifestUrl, resolveClientOtaBaseUrl } from '@/lib/ota-client'
 
 interface InstallButtonProps {
   releaseId: string
@@ -79,18 +80,15 @@ export function InstallButton({
     }
   }, [releaseId, platform])
 
-  // Compute the OTA href — for all iOS browsers (itms-services:// is handled at OS level)
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '')
+  const browserOrigin = typeof window !== 'undefined' ? window.location.origin : null
+  const baseUrl = resolveClientOtaBaseUrl(browserOrigin, process.env.NEXT_PUBLIC_APP_URL)
   const otaHref = iosDevice && platform === 'IOS' && otaToken
-    ? (baseUrl.startsWith('https://')
-        ? (() => {
-            const manifestUrl = `${baseUrl}/api/v1/releases/${releaseId}/manifest?token=${otaToken}`
-            return `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`
-          })()
-        : null)   // HTTP base URL — iOS will reject; fall through to HTTPS error branch
+    ? (baseUrl
+        ? buildItmsServicesUrl(buildManifestUrl(baseUrl, releaseId, otaToken))
+        : null)
     : null
 
-  const httpsError = iosDevice && platform === 'IOS' && !!otaToken && !baseUrl.startsWith('https://')
+  const httpsError = iosDevice && platform === 'IOS' && !!otaToken && !baseUrl
 
   const label = platform === 'IOS' && iosDevice ? 'Install' : platform === 'IOS' ? 'Download IPA' : 'Download APK'
 
@@ -100,18 +98,15 @@ export function InstallButton({
     : <Download className="size-4 sm:mr-2" aria-hidden="true" />
   const labelText = <span className="hidden sm:inline">{downloading ? 'Downloading…' : label}</span>
 
-  // iOS with valid OTA token over HTTPS: navigate via window.location.href so the OS
-  // handles the itms-services:// scheme reliably across Safari, Chrome, and Firefox on iOS.
+  // iOS with valid OTA token over HTTPS: render as native <a> so the browser/OS
+  // handles the itms-services:// scheme.
   if (otaHref) {
     return (
-      <Button
-        className={className}
-        style={buttonStyle}
-        aria-label={label}
-        onClick={() => { window.location.href = otaHref }}
-      >
-        {icon}
-        {labelText}
+      <Button asChild className={className} style={buttonStyle} aria-label={label}>
+        <a href={otaHref}>
+          {icon}
+          {labelText}
+        </a>
       </Button>
     )
   }
@@ -122,7 +117,7 @@ export function InstallButton({
       <Button
         className={className}
         style={buttonStyle}
-        onClick={() => toast.error('iOS OTA install requires HTTPS. Set NEXT_PUBLIC_APP_URL to your public HTTPS URL.')}
+        onClick={() => toast.error('iOS OTA install requires an HTTPS public URL.')}
         aria-label={label}
       >
         {icon}

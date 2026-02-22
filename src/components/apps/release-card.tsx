@@ -20,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { InstallButton } from '@/components/releases/install-button'
+import { getIosOtaWarning } from '@/lib/ios-ota'
 import type { MockRelease, Platform } from '@/types/app'
 import { getReleaseTypeLabel, RELEASE_TYPE_COLORS, SIGNING_TYPE_LABELS } from '@/types/app'
 
@@ -46,6 +47,7 @@ export function ReleaseCard({ release, platform, otaToken }: ReleaseCardProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const colors = RELEASE_TYPE_COLORS[release.releaseType]
+  const otaWarning = getIosOtaWarning(platform, release.signingType)
 
   async function handleDelete() {
     setIsDeleting(true)
@@ -121,6 +123,11 @@ export function ReleaseCard({ release, platform, otaToken }: ReleaseCardProps) {
 
           {/* Right: actions */}
           <div className="flex shrink-0 flex-col gap-2">
+            {otaWarning && (
+              <p className="max-w-[17rem] text-xs text-amber-600">
+                {otaWarning}
+              </p>
+            )}
             <InstallButton
               releaseId={release.id}
               platform={platform}

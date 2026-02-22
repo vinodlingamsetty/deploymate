@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 
 import { Separator } from '@/components/ui/separator'
 import type { MockDistributionGroup, MockRelease, Platform } from '@/types/app'
+import { getIosOtaWarning } from '@/lib/ios-ota'
 import { ReleaseDetailsHeader } from './release-details-header'
 import { ReleaseDetailsStats } from './release-details-stats'
 
@@ -24,6 +25,8 @@ export function ReleaseDetailsContent({
   otaToken,
   distributionGroups,
 }: ReleaseDetailsContentProps) {
+  const otaWarning = getIosOtaWarning(platform, release.signingType)
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [release.id])
@@ -37,6 +40,12 @@ export function ReleaseDetailsContent({
         platform={platform}
         otaToken={otaToken}
       />
+
+      {otaWarning && (
+        <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+          {otaWarning}
+        </div>
+      )}
 
       <div className="mt-6">
         <ReleaseDetailsStats release={release} platform={platform} />

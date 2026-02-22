@@ -1,5 +1,15 @@
 import { verifyOtaToken } from '@/lib/ota-token'
-import { errorResponse } from '@/lib/api-utils'
+import { resolveOtaPublicOrigin } from '@/lib/ota-origin'
+
+function otaErrorResponse(message: string, status: number): Response {
+  return new Response(message, {
+    status,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  })
+}
 
 export async function GET(
   request: Request,
@@ -7,20 +17,15 @@ export async function GET(
 ) {
   const url = new URL(request.url)
   const token = url.searchParams.get('token')
-  console.log('[ota/manifest] request url:', request.url)
-  console.log('[ota/manifest] x-forwarded-proto:', request.headers.get('x-forwarded-proto'))
 
   if (!token) {
-    console.log('[ota/manifest] missing token')
-    return errorResponse('FORBIDDEN', 'Invalid or expired OTA token', 403)
+    return otaErrorResponse('Invalid or expired OTA token', 403)
   }
 
   const userId = verifyOtaToken(token, params.id)
   if (!userId) {
-    console.log('[ota/manifest] invalid or expired token for releaseId:', params.id)
-    return errorResponse('FORBIDDEN', 'Invalid or expired OTA token', 403)
+    return otaErrorResponse('Invalid or expired OTA token', 403)
   }
-  console.log('[ota/manifest] token ok — userId:', userId, 'releaseId:', params.id)
 
   const { db } = await import('@/lib/db')
 
@@ -30,10 +35,8 @@ export async function GET(
   })
 
   if (!release) {
-    console.log('[ota/manifest] release not found — id:', params.id)
-    return errorResponse('NOT_FOUND', 'Release not found', 404)
+    return otaErrorResponse('Release not found', 404)
   }
-  console.log('[ota/manifest] release found — bundleId:', release.extractedBundleId ?? release.app.bundleId, 'app:', release.app.name)
 
   // Verify the token's user still has access to this release's organization.
   // Public install tokens use 'public-install' as userId — a valid signed token
@@ -50,38 +53,18 @@ export async function GET(
     ])
 
     if (!membership && !user?.isSuperAdmin) {
-      return errorResponse('FORBIDDEN', 'Access denied', 403)
+      return otaErrorResponse('Access denied', 403)
     }
   }
 
   const bundleId =
     release.extractedBundleId ?? release.app.bundleId ?? 'com.unknown'
 
-  // Build the download URL — validate HTTPS in production (required for iOS OTA).
-  // When running behind a reverse proxy (e.g. Cloudflare Tunnel) the server sees
-  // plain HTTP, so we check x-forwarded-proto to get the true client-facing protocol.
-  let rawOrigin: string
-  if (process.env.APP_URL) {
-    rawOrigin = process.env.APP_URL.replace(/\/$/, '')
-  } else {
-    const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
-    if (forwardedProto) {
-      url.protocol = forwardedProto + ':'
-    }
-    rawOrigin = url.origin
+  const originResult = resolveOtaPublicOrigin(request)
+  if ('error' in originResult) {
+    return otaErrorResponse(originResult.error, 500)
   }
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      const originUrl = new URL(rawOrigin)
-      if (originUrl.protocol !== 'https:') {
-        return errorResponse('SERVER_ERROR', 'APP_URL must use HTTPS for iOS OTA installs', 500)
-      }
-    } catch {
-      return errorResponse('SERVER_ERROR', 'APP_URL is not a valid URL', 500)
-    }
-  }
-  console.log('[ota/manifest] rawOrigin:', rawOrigin)
-  const downloadUrl = `${rawOrigin}/api/v1/releases/${release.id}/download?token=${encodeURIComponent(token!)}`
+  const downloadUrl = `${originResult.origin}/api/v1/releases/${release.id}/download?token=${encodeURIComponent(token)}`
 
   const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -115,10 +98,10 @@ export async function GET(
 </dict>
 </plist>`
 
-  console.log('[ota/manifest] serving plist — downloadUrl:', downloadUrl)
   return new Response(plist, {
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
+      'Cache-Control': 'no-store',
     },
   })
 }
