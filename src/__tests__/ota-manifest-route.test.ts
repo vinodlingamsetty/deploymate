@@ -58,6 +58,7 @@ describe('GET /api/v1/releases/:id/manifest', () => {
     releaseFindUniqueMock.mockResolvedValue({
       id: 'rel_1',
       version: '2.1.0',
+      buildNumber: '42',
       extractedBundleId: 'com.example.app',
       app: {
         name: 'Example App',
@@ -76,8 +77,34 @@ describe('GET /api/v1/releases/:id/manifest', () => {
     expect(res.headers.get('content-type')).toContain('text/xml')
     const body = await res.text()
     expect(body).toContain('<string>software-package</string>')
+    expect(body).toContain('<key>bundle-version</key>')
+    expect(body).toContain('<string>42</string>')
     expect(body).toContain(
       'https://deploymate.example.com/api/v1/releases/rel_1/download?token=signed-token',
     )
+  })
+
+  it('returns plain-text 500 when build number metadata is missing', async () => {
+    verifyOtaTokenMock.mockReturnValue('public-install')
+    releaseFindUniqueMock.mockResolvedValue({
+      id: 'rel_1',
+      version: '2.1.0',
+      buildNumber: '',
+      extractedBundleId: 'com.example.app',
+      app: {
+        name: 'Example App',
+        bundleId: 'com.example.app',
+        orgId: 'org_1',
+      },
+    })
+
+    const res = await GET(
+      new Request('https://deploymate.example.com/api/v1/releases/rel_1/manifest?token=signed-token'),
+      { params: { id: 'rel_1' } },
+    )
+
+    expect(res.status).toBe(500)
+    expect(res.headers.get('content-type')).toContain('text/plain')
+    expect(await res.text()).toContain('missing build number metadata')
   })
 })

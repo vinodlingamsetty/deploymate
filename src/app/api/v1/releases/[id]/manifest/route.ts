@@ -57,8 +57,14 @@ export async function GET(
     }
   }
 
-  const bundleId =
-    release.extractedBundleId ?? release.app.bundleId ?? 'com.unknown'
+  const bundleId = release.extractedBundleId ?? release.app.bundleId
+  if (!bundleId || !bundleId.trim()) {
+    return otaErrorResponse('Release is missing bundle identifier metadata for OTA install', 500)
+  }
+  const buildNumber = release.buildNumber?.trim()
+  if (!buildNumber) {
+    return otaErrorResponse('Release is missing build number metadata for OTA install', 500)
+  }
 
   const originResult = resolveOtaPublicOrigin(request)
   if ('error' in originResult) {
@@ -87,7 +93,7 @@ export async function GET(
         <key>bundle-identifier</key>
         <string>${escapeXml(bundleId)}</string>
         <key>bundle-version</key>
-        <string>${escapeXml(release.version)}</string>
+        <string>${escapeXml(buildNumber)}</string>
         <key>kind</key>
         <string>software</string>
         <key>title</key>
