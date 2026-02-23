@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { authenticateRequest } from '@/lib/auth-utils'
+import { requireApiPermission } from '@/lib/api-authz'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppRole, requireAppAccess } from '@/lib/permissions'
 import { getStorageAdapter } from '@/lib/storage'
@@ -26,12 +27,15 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
+  if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'WRITE')
+  if (permissionError) return permissionError
 
-  const roleResult = await requireAppRole(params.id, session.user.id, 'MANAGER', session.user.isSuperAdmin)
+  const roleResult = await requireAppRole(params.id, user.id, 'MANAGER', user.isSuperAdmin)
   if (roleResult.error) return roleResult.error
   const { app } = roleResult
 
@@ -164,7 +168,7 @@ export async function POST(
 
   const { ipAddress, userAgent } = extractRequestMeta(request)
   void createAuditLog({
-    userId: session.user.id,
+    userId: user.id,
     orgId: app.orgId,
     action: 'create',
     entityType: 'release',
@@ -178,15 +182,18 @@ export async function POST(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
+  if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'READ')
+  if (permissionError) return permissionError
 
-  const accessResult = await requireAppAccess(params.id, session.user.id)
+  const accessResult = await requireAppAccess(params.id, user.id)
   if (accessResult.error) return accessResult.error
 
   const { db } = await import('@/lib/db')

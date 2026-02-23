@@ -5,7 +5,12 @@ title: Authentication
 
 # API Authentication
 
-All API endpoints require authentication via Bearer token. Generate API tokens from the Settings page in the DeployMate dashboard.
+DeployMate supports two authentication modes:
+
+1. Browser session cookie (dashboard users)
+2. Bearer API token (CI/CD and automation)
+
+Use API tokens for non-interactive workflows.
 
 ## Token Format
 
@@ -14,6 +19,8 @@ API tokens use the prefix `dm_` followed by a random string:
 ```
 dm_a1b2c3d4e5f6g7h8i9j0
 ```
+
+Generate tokens from **Settings → API Tokens** in DeployMate.
 
 ## Usage
 
@@ -26,12 +33,33 @@ curl -H "Authorization: Bearer dm_your-token-here" \
 
 ## Token Permissions
 
-Tokens support scoped permissions:
+DeployMate enforces endpoint-level permissions for token-authenticated requests:
 
 - `READ`
 - `WRITE`
-- `DELETE`
-- `ADMIN`
+
+Rules:
+
+- `GET` / `HEAD` routes require `READ` (or `WRITE`)
+- `POST` / `PUT` / `PATCH` / `DELETE` routes require `WRITE`
+
+## Endpoint Support Matrix
+
+Token authentication is enabled on automation-focused app/release endpoints in this docs set:
+
+- `GET /api/v1/apps`
+- `POST /api/v1/apps`
+- `GET /api/v1/apps/:id`
+- `PATCH /api/v1/apps/:id`
+- `DELETE /api/v1/apps/:id`
+- `GET /api/v1/apps/:appId/releases`
+- `POST /api/v1/apps/:appId/releases/upload-url`
+- `POST /api/v1/apps/:appId/releases`
+- `GET /api/v1/apps/:appId/releases/latest`
+- `GET /api/v1/releases/:id`
+- `DELETE /api/v1/releases/:id`
+
+Some account-management and organization-management routes remain dashboard session-first.
 
 ## Response Format
 

@@ -1,4 +1,5 @@
 import { authenticateRequest } from '@/lib/auth-utils'
+import { requireApiPermission } from '@/lib/api-authz'
 import {
   successResponse,
   errorResponse,
@@ -14,10 +15,13 @@ import { type Prisma } from '@prisma/client'
 import { createAuditLog, extractRequestMeta } from '@/lib/audit'
 
 export async function GET(request: Request) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'READ')
+  if (permissionError) return permissionError
 
   const { db } = await import('@/lib/db')
   const { searchParams } = new URL(request.url)
@@ -89,10 +93,13 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'WRITE')
+  if (permissionError) return permissionError
 
   let body: unknown
   try {

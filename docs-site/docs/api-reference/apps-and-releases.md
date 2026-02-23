@@ -7,6 +7,16 @@ title: Apps & Releases
 
 Manage applications and their releases programmatically.
 
+Authentication:
+
+- Bearer token (`Authorization: Bearer dm_...`) for CI/CD and automation
+- Session cookie for dashboard users
+
+Permission model for token-authenticated requests:
+
+- `READ` for `GET`/`HEAD`
+- `WRITE` for `POST`/`PATCH`/`DELETE`
+
 ## Apps
 
 ### List Apps
@@ -25,9 +35,10 @@ Content-Type: application/json
 
 {
   "name": "My App",
-  "platform": "ios",
-  "organizationId": "org-id",
-  "releaseType": "beta"
+  "platform": "IOS",
+  "orgId": "org-id",
+  "bundleId": "com.example.myapp",
+  "description": "Optional app description"
 }
 ```
 
@@ -50,7 +61,7 @@ Requires the app name as a confirmation parameter.
 ### List Releases
 
 ```
-GET /api/v1/apps/:appId/releases?page=1&limit=20
+GET /api/v1/apps/:appId/releases
 ```
 
 ### Create Release
@@ -62,23 +73,36 @@ Creating a release is a two-step process:
    POST /api/v1/apps/:appId/releases/upload-url
    Content-Type: application/json
 
-   { "fileName": "app.ipa", "contentType": "application/octet-stream" }
+   {
+     "fileName": "app.ipa",
+     "fileSize": 52428800,
+     "contentType": "application/octet-stream"
+   }
    ```
 
-2. **Upload the file** to the returned signed URL, then **create the release:**
+2. **Upload the file** to the returned signed URL.
+
+3. **Create release record** after upload:
    ```
    POST /api/v1/apps/:appId/releases
    Content-Type: application/json
 
    {
-     "version": "1.2.0",
-     "releaseNotes": "Bug fixes and improvements",
      "fileKey": "returned-file-key",
-     "fileName": "app.ipa",
-     "fileSize": 52428800,
-     "groupIds": ["group-id-1"]
+     "releaseType": "BETA",
+     "releaseNotes": "Bug fixes and improvements",
+     "distributionGroups": [
+       { "id": "group-id-1", "type": "app" },
+       { "id": "group-id-2", "type": "org" }
+     ]
    }
    ```
+
+`releaseType` values:
+
+- `ALPHA`
+- `BETA`
+- `RELEASE_CANDIDATE`
 
 ### Get Latest Release
 

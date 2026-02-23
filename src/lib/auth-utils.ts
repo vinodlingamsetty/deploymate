@@ -1,4 +1,5 @@
 import { createHmac } from 'crypto'
+import type { TokenPermission } from '@prisma/client'
 import { auth } from '@/lib/auth'
 
 /**
@@ -66,6 +67,8 @@ export async function getServerAuthSession() {
  */
 export async function authenticateRequest(request: Request): Promise<{
   authenticated: boolean
+  authType: 'session' | 'token' | null
+  tokenPermissions: TokenPermission[] | null
   user: {
     id: string
     email: string
@@ -77,10 +80,12 @@ export async function authenticateRequest(request: Request): Promise<{
   
   if (session?.user) {
     if (!session.user.email) {
-      return { authenticated: false, user: null }
+      return { authenticated: false, authType: null, tokenPermissions: null, user: null }
     }
     return {
       authenticated: true,
+      authType: 'session',
+      tokenPermissions: null,
       user: {
         id: session.user.id,
         email: session.user.email,
@@ -93,7 +98,7 @@ export async function authenticateRequest(request: Request): Promise<{
   const authHeader = request.headers.get('authorization')
   
   if (!authHeader?.startsWith('Bearer ')) {
-    return { authenticated: false, user: null }
+    return { authenticated: false, authType: null, tokenPermissions: null, user: null }
   }
 
   const token = authHeader.substring(7) // Remove 'Bearer ' prefix
@@ -119,12 +124,12 @@ export async function authenticateRequest(request: Request): Promise<{
   })
 
   if (!apiToken) {
-    return { authenticated: false, user: null }
+    return { authenticated: false, authType: null, tokenPermissions: null, user: null }
   }
 
   // Check if token is expired
   if (apiToken.expiresAt && apiToken.expiresAt < new Date()) {
-    return { authenticated: false, user: null }
+    return { authenticated: false, authType: null, tokenPermissions: null, user: null }
   }
 
   // Update last used timestamp
@@ -135,6 +140,8 @@ export async function authenticateRequest(request: Request): Promise<{
 
   return {
     authenticated: true,
+    authType: 'token',
+    tokenPermissions: apiToken.permissions,
     user: apiToken.user,
   }
 }

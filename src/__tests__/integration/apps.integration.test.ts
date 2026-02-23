@@ -89,6 +89,25 @@ describe('GET /api/v1/apps', () => {
 })
 
 describe('POST /api/v1/apps', () => {
+  it('403: read-only API token cannot create an app', async () => {
+    const user = await createTestUser()
+    const { org } = await createTestOrg(user.id, Role.ADMIN)
+    const token = await createTestApiToken(user.id, ['READ'])
+
+    const res = await POST(
+      makeRequest('POST', '/api/v1/apps', token, {
+        name: 'New App',
+        platform: 'IOS',
+        orgId: org.id,
+      })
+    )
+    const body = await res.json() as { error: { code: string; message: string } }
+
+    expect(res.status).toBe(403)
+    expect(body.error.code).toBe('FORBIDDEN')
+    expect(body.error.message).toContain('WRITE')
+  })
+
   it('201: ADMIN creates an app successfully', async () => {
     const user = await createTestUser()
     const { org } = await createTestOrg(user.id, Role.ADMIN)

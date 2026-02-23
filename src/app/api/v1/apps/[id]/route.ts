@@ -1,4 +1,5 @@
 import { authenticateRequest } from '@/lib/auth-utils'
+import { requireApiPermission } from '@/lib/api-authz'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppAccess, requireAppRole } from '@/lib/permissions'
 import { updateAppSchema } from '@/lib/validations'
@@ -9,10 +10,13 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'READ')
+  if (permissionError) return permissionError
 
   const result = await requireAppAccess(params.id, user.id)
   if (result.error) return result.error
@@ -72,10 +76,13 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'WRITE')
+  if (permissionError) return permissionError
 
   const result = await requireAppRole(params.id, user.id, 'ADMIN', user.isSuperAdmin)
   if (result.error) return result.error
@@ -140,10 +147,13 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'WRITE')
+  if (permissionError) return permissionError
 
   const result = await requireAppRole(params.id, user.id, 'ADMIN', user.isSuperAdmin)
   if (result.error) return result.error

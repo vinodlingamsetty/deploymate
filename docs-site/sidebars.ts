@@ -19,6 +19,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Guides',
+      items: ['guides/cicd-upload-github-actions'],
+    },
+    {
+      type: 'category',
       label: 'Deployment',
       items: ['deployment/docker', 'deployment/reverse-proxy', 'deployment/gcp-enterprise'],
     },

@@ -1,4 +1,5 @@
 import { authenticateRequest } from '@/lib/auth-utils'
+import { requireApiPermission } from '@/lib/api-authz'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppAccess } from '@/lib/permissions'
 
@@ -6,10 +7,13 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const { authenticated, user } = await authenticateRequest(request)
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
   if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'READ')
+  if (permissionError) return permissionError
 
   const result = await requireAppAccess(params.id, user.id)
   if (result.error) return result.error

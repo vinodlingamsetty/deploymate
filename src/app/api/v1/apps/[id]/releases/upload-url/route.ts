@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { authenticateRequest } from '@/lib/auth-utils'
+import { requireApiPermission } from '@/lib/api-authz'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { requireAppRole } from '@/lib/permissions'
 import { getStorageAdapter } from '@/lib/storage'
@@ -14,12 +15,15 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const authResult = await authenticateRequest(request)
+  const { authenticated, user } = authResult
+  if (!authenticated || !user) {
     return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
   }
+  const permissionError = requireApiPermission(authResult, 'WRITE')
+  if (permissionError) return permissionError
 
-  const roleResult = await requireAppRole(params.id, session.user.id, 'MANAGER', session.user.isSuperAdmin)
+  const roleResult = await requireAppRole(params.id, user.id, 'MANAGER', user.isSuperAdmin)
   if (roleResult.error) return roleResult.error
   const { app } = roleResult
 

@@ -7,6 +7,11 @@ title: Organizations
 
 Manage organizations, members, and invitations.
 
+Authentication note:
+
+- These organization-management endpoints are currently dashboard session-first.
+- Use a signed-in browser session (cookie auth) for these routes.
+
 ## Organizations
 
 ### List Organizations
