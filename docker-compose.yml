@@ -7,7 +7,7 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-deploymate}:${POSTGRES_PASSWORD:-deploymate}@db:5432/${POSTGRES_DB:-deploymate}?schema=public
-      - AUTH_SECRET=${AUTH_SECRET:?ERROR: AUTH_SECRET must be set}
+      - "AUTH_SECRET=${AUTH_SECRET}"
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - REDIS_URL=redis://redis:6379
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
