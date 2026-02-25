@@ -53,6 +53,7 @@ COPY --from=builder /app/.next/static ./.next/static
 RUN mkdir -p ./public
 
 # Copy Prisma schema and migrations for runtime migration
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
