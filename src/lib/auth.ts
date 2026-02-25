@@ -1,6 +1,6 @@
 import NextAuth, { type DefaultSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { authConfig } from './auth.config'
+import { assertAuthSecretRuntime, authConfig } from './auth.config'
 
 declare module 'next-auth' {
   interface Session {
@@ -14,6 +14,8 @@ declare module 'next-auth' {
     isSuperAdmin: boolean
   }
 }
+
+assertAuthSecretRuntime()
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,

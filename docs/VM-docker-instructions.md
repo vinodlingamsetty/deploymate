@@ -97,9 +97,9 @@ SITE_ADDRESS=betavault.app
 APP_PORT=3000
 
 POSTGRES_USER=deploymate
-POSTGRES_PASSWORD=REPLACE_WITH_STRONG_PASSWORD
+POSTGRES_PASSWORD=REPLACE_WITH_STRONG_URL_SAFE_PASSWORD
 POSTGRES_DB=deploymate
-DATABASE_URL=postgresql://deploymate:REPLACE_WITH_STRONG_PASSWORD@db:5432/deploymate?schema=public
+DATABASE_URL=postgresql://deploymate:REPLACE_WITH_STRONG_URL_SAFE_PASSWORD@db:5432/deploymate?schema=public
 
 STORAGE_PROVIDER=local
 LOCAL_STORAGE_PATH=/app/data/uploads
@@ -112,6 +112,8 @@ EOF
 Important:
 - Use real values, not placeholders like `<strong-password>`.
 - `APP_URL` and `NEXT_PUBLIC_APP_URL` should match your live HTTPS domain exactly.
+- Keep `AUTH_SECRET` and `NEXTAUTH_SECRET` set for runtime. DeployMate does not require Docker build args for these after the auth refactor.
+- Use a URL-safe DB password in `DATABASE_URL` (letters/numbers only). If you use special characters, URL-encode the password first.
 
 ## 7. Start DeployMate
 
@@ -160,18 +162,29 @@ docker compose config
 ```
 
 ### B) Build error: `AUTH_SECRET or NEXTAUTH_SECRET is not set`
-Cause: secret not available during build/runtime.
+Cause: this should no longer happen during `next build` after the auth refactor. If it appears, your VM is likely using an older image or code revision.
 
 Fix:
-- Ensure `.env` has both:
+- Ensure the latest code is pulled:
+
+```bash
+git pull
+```
+
+- Ensure `.env` has runtime secrets:
   - `AUTH_SECRET=...`
   - `NEXTAUTH_SECRET=...`
-- Rebuild:
+
+- Rebuild and restart:
 
 ```bash
 docker compose build --no-cache app
 docker compose up -d
 ```
+
+Runtime note:
+- Build should succeed without passing auth secrets as Docker build args.
+- Container startup still requires runtime secrets and will fail fast if missing.
 
 ### C) Runtime migration error: `Can't write to .../@prisma/engines`
 Cause: image permissions/layout issue around Prisma engines.
@@ -210,4 +223,3 @@ At minimum:
 ```bash
 docker compose exec db pg_dump -U deploymate deploymate > backup.sql
 ```
-

@@ -15,6 +15,11 @@ shutdown() {
 
 trap shutdown SIGTERM SIGINT
 
+if [ "$NODE_ENV" = "production" ] && [ -z "$AUTH_SECRET" ] && [ -z "$NEXTAUTH_SECRET" ]; then
+  echo "ERROR: AUTH_SECRET or NEXTAUTH_SECRET must be set in production. Exiting." >&2
+  exit 1
+fi
+
 echo "Running database migrations..."
 if ! npx prisma migrate deploy; then
   echo "ERROR: Database migration failed. Exiting." >&2
