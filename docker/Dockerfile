@@ -50,16 +50,11 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Copy standalone output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+RUN mkdir -p ./public
 
 # Copy Prisma schema and migrations for runtime migration
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-
-# Copy native modules needed at runtime
-COPY --from=builder /app/node_modules/@node-rs ./node_modules/@node-rs
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Copy worker
 COPY --from=builder /app/dist/worker.js ./worker.js
