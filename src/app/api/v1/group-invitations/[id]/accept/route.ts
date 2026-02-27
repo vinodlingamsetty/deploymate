@@ -30,7 +30,7 @@ export async function POST(
     return errorResponse('GONE', 'This invitation has been revoked', 410)
   }
 
-  if (invitation.status === 'EXPIRED' || invitation.expiresAt < new Date()) {
+  if (invitation.expiresAt < new Date()) {
     return errorResponse('GONE', 'This invitation has expired', 410)
   }
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Users, UserCheck, Clock, Mail, XCircle, AlertCircle } from 'lucide-react'
 import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
 import {
   Card,
   CardContent,
@@ -13,18 +14,6 @@ import { AcceptGroupInviteButton } from '@/components/invitations/accept-group-i
 
 interface PageProps {
   params: { token: string }
-}
-
-interface InvitationData {
-  id: string
-  email: string
-  role: string
-  status: string
-  groupName: string
-  contextName: string
-  inviterName: string
-  expiresAt: string
-  createdAt: string
 }
 
 function ErrorCard({ title, message }: { title: string; message: string }) {
@@ -48,8 +37,8 @@ function ErrorCard({ title, message }: { title: string; message: string }) {
   )
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -61,14 +50,19 @@ function formatRole(role: string): string {
 }
 
 export default async function GroupInvitationAcceptPage({ params }: PageProps) {
-  const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-
-  const [session, res] = await Promise.all([
+  const [session, invitation] = await Promise.all([
     auth(),
-    fetch(`${baseUrl}/api/v1/group-invitations/${params.token}`, { cache: 'no-store' }),
+    db.groupInvitation.findUnique({
+      where: { token: params.token },
+      include: {
+        appGroup: { select: { name: true, app: { select: { name: true } } } },
+        orgGroup: { select: { name: true, organization: { select: { name: true } } } },
+        invitedBy: { select: { firstName: true, lastName: true, email: true } },
+      },
+    }),
   ])
 
-  if (!res.ok) {
+  if (!invitation) {
     return (
       <ErrorCard
         title="Invitation not found"
@@ -77,10 +71,7 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
     )
   }
 
-  const json = await res.json() as { data: InvitationData }
-  const invitation = json.data
-
-  if (invitation.status === 'EXPIRED' || new Date(invitation.expiresAt) < new Date()) {
+  if (invitation.expiresAt < new Date()) {
     return (
       <ErrorCard
         title="Invitation expired"
@@ -107,6 +98,16 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
     )
   }
 
+  const groupName = invitation.appGroup?.name ?? invitation.orgGroup?.name ?? 'Unknown Group'
+  const contextName =
+    invitation.appGroup?.app.name ??
+    invitation.orgGroup?.organization.name ??
+    'Unknown'
+  const inviterName =
+    invitation.invitedBy.firstName && invitation.invitedBy.lastName
+      ? `${invitation.invitedBy.firstName} ${invitation.invitedBy.lastName}`
+      : invitation.invitedBy.email
+
   const emailMismatch =
     session &&
     session.user.email?.toLowerCase() !== invitation.email.toLowerCase()
@@ -118,7 +119,7 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
           You&apos;ve been invited!
         </CardTitle>
         <CardDescription className="text-base text-muted-foreground">
-          Join the <strong>{invitation.groupName}</strong> distribution group
+          Join the <strong>{groupName}</strong> distribution group
         </CardDescription>
       </CardHeader>
 
@@ -128,8 +129,8 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
           <div className="flex items-center gap-3 text-sm">
             <Users className="h-4 w-4 shrink-0 text-[#0077b6]" aria-hidden="true" />
             <span className="text-muted-foreground">Group</span>
-            <span className="ml-auto font-medium truncate max-w-[160px]" title={invitation.groupName}>
-              {invitation.groupName}
+            <span className="ml-auto font-medium truncate max-w-[160px]" title={groupName}>
+              {groupName}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm">
@@ -140,8 +141,8 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
           <div className="flex items-center gap-3 text-sm">
             <Mail className="h-4 w-4 shrink-0 text-[#0077b6]" aria-hidden="true" />
             <span className="text-muted-foreground">Invited by</span>
-            <span className="ml-auto font-medium truncate max-w-[160px]" title={invitation.inviterName}>
-              {invitation.inviterName}
+            <span className="ml-auto font-medium truncate max-w-[160px]" title={inviterName}>
+              {inviterName}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm">
@@ -167,7 +168,7 @@ export default async function GroupInvitationAcceptPage({ params }: PageProps) {
               </div>
             </div>
           ) : (
-            <AcceptGroupInviteButton token={params.token} groupName={invitation.groupName} />
+            <AcceptGroupInviteButton token={params.token} groupName={groupName} />
           )
         ) : (
           <div className="space-y-3">

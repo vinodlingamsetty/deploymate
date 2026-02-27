@@ -1,12 +1,18 @@
+import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 
 // GET /api/v1/group-invitations/[id]
-// Public route — looks up a GroupInvitation by token
-// The URL param `id` contains the token string
+// Requires auth. Looks up a GroupInvitation by token.
+// The URL param `id` contains the token string.
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } },
 ) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return errorResponse('UNAUTHORIZED', 'Authentication required', 401)
+  }
+
   const { db } = await import('@/lib/db')
 
   const invitation = await db.groupInvitation.findUnique({

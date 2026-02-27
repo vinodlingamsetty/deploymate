@@ -1,7 +1,9 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { isPrismaError } from '@/lib/db'
 import { generateInviteToken, getInvitationExpiryDate } from '@/lib/invite-token'
 import { sendGroupInvitationEmail } from '@/lib/email'
+import logger from '@/lib/logger'
 import { z } from 'zod'
 
 const addMembersSchema = z.object({
@@ -36,12 +38,15 @@ export async function POST(
     return errorResponse('NOT_FOUND', 'Group not found', 404)
   }
 
-  // Verify user belongs to the org that owns this app
+  // Verify user belongs to the org that owns this app and is a MANAGER+
   const membership = await db.membership.findUnique({
     where: { userId_orgId: { userId: session.user.id, orgId: group.app.orgId } },
   })
   if (!membership) {
     return errorResponse('FORBIDDEN', 'You do not have access to this group', 403)
+  }
+  if (!session.user.isSuperAdmin && membership.role === 'TESTER') {
+    return errorResponse('FORBIDDEN', 'Insufficient permissions to add members', 403)
   }
 
   let body: unknown
@@ -122,29 +127,40 @@ export async function POST(
         data: { token, expiresAt, status: 'PENDING', invitedById: session.user.id },
       })
     } else {
-      await db.groupInvitation.create({
-        data: {
-          token,
-          email,
-          role: m.role,
-          appGroupId: params.groupId,
-          invitedById: session.user.id,
-          expiresAt,
-        },
-      })
+      try {
+        await db.groupInvitation.create({
+          data: {
+            token,
+            email,
+            role: m.role,
+            appGroupId: params.groupId,
+            invitedById: session.user.id,
+            expiresAt,
+          },
+        })
+      } catch (err: unknown) {
+        // Race condition: another concurrent request created the same invite
+        if (isPrismaError(err, 'P2002')) {
+          continue
+        }
+        throw err
+      }
     }
 
     const acceptUrl = `${baseUrl}/invitations/group/${token}/accept`
-    await sendGroupInvitationEmail({
-      to: email,
-      groupName: group.name,
-      contextName: group.app.name,
-      inviterName,
-      role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
-      acceptUrl,
-    })
-
-    invited++
+    try {
+      await sendGroupInvitationEmail({
+        to: email,
+        groupName: group.name,
+        contextName: group.app.name,
+        inviterName,
+        role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
+        acceptUrl,
+      })
+      invited++
+    } catch (err: unknown) {
+      logger.warn({ err, email }, 'Failed to send group invitation email')
+    }
   }
 
   return successResponse({ added: existingMembers.length, invited }, 201)

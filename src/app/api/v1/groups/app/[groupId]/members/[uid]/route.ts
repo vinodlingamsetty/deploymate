@@ -32,6 +32,9 @@ export async function DELETE(
   if (!membership) {
     return errorResponse('FORBIDDEN', 'You do not have access to this group', 403)
   }
+  if (!session.user.isSuperAdmin && membership.role === 'TESTER') {
+    return errorResponse('FORBIDDEN', 'Insufficient permissions to remove members', 403)
+  }
 
   try {
     await db.appGroupMember.delete({

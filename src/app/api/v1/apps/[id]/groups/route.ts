@@ -4,6 +4,7 @@ import { isPrismaError } from '@/lib/db'
 import { requireAppRole } from '@/lib/permissions'
 import { generateInviteToken, getInvitationExpiryDate } from '@/lib/invite-token'
 import { sendGroupInvitationEmail } from '@/lib/email'
+import logger from '@/lib/logger'
 import { z } from 'zod'
 
 const memberSchema = z.object({
@@ -159,26 +160,38 @@ export async function POST(
       const token = generateInviteToken()
       const expiresAt = getInvitationExpiryDate()
 
-      await db.groupInvitation.create({
-        data: {
-          token,
-          email,
-          role: m.role,
-          appGroupId: group.id,
-          invitedById: session.user.id,
-          expiresAt,
-        },
-      })
+      try {
+        await db.groupInvitation.create({
+          data: {
+            token,
+            email,
+            role: m.role,
+            appGroupId: group.id,
+            invitedById: session.user.id,
+            expiresAt,
+          },
+        })
+      } catch (err: unknown) {
+        // Race condition: another concurrent request created the same invite
+        if (isPrismaError(err, 'P2002')) {
+          continue
+        }
+        throw err
+      }
 
       const acceptUrl = `${baseUrl}/invitations/group/${token}/accept`
-      await sendGroupInvitationEmail({
-        to: email,
-        groupName: name,
-        contextName: app.name,
-        inviterName,
-        role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
-        acceptUrl,
-      })
+      try {
+        await sendGroupInvitationEmail({
+          to: email,
+          groupName: name,
+          contextName: app.name,
+          inviterName,
+          role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
+          acceptUrl,
+        })
+      } catch (err: unknown) {
+        logger.warn({ err, email }, 'Failed to send group invitation email')
+      }
     }
   }
 
