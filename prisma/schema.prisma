@@ -25,16 +25,18 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  memberships         Membership[]
-  appMemberships      AppMembership[]
-  appGroupMembers     AppGroupMember[]
-  orgGroupMembers     OrgGroupMember[]
-  apiTokens           ApiToken[]
-  invitationsSent     Invitation[]  @relation("InvitationsSent")
-  invitationsReceived Invitation[]  @relation("InvitationsReceived")
-  downloadLogs        DownloadLog[]
-  feedback            Feedback[]
-  auditLogs           AuditLog[]
+  memberships                Membership[]
+  appMemberships             AppMembership[]
+  appGroupMembers            AppGroupMember[]
+  orgGroupMembers            OrgGroupMember[]
+  apiTokens                  ApiToken[]
+  invitationsSent            Invitation[]       @relation("InvitationsSent")
+  invitationsReceived        Invitation[]       @relation("InvitationsReceived")
+  groupInvitationsSent       GroupInvitation[]  @relation("GroupInvitationsSent")
+  groupInvitationsReceived   GroupInvitation[]  @relation("GroupInvitationsReceived")
+  downloadLogs               DownloadLog[]
+  feedback                   Feedback[]
+  auditLogs                  AuditLog[]
 
   @@index([email])
 }
@@ -184,6 +186,7 @@ model AppDistGroup {
   app           App               @relation(fields: [appId], references: [id], onDelete: Cascade)
   members       AppGroupMember[]
   releaseGroups ReleaseGroup[]
+  invitations   GroupInvitation[]
 
   @@unique([appId, name])
   @@index([appId])
@@ -216,6 +219,7 @@ model OrgDistGroup {
   members       OrgGroupMember[]
   apps          OrgGroupApp[]
   releaseGroups ReleaseGroup[]
+  invitations   GroupInvitation[]
 
   @@unique([orgId, name])
   @@index([orgId])
@@ -268,6 +272,35 @@ model ReleaseGroup {
 enum GroupMemberRole {
   MANAGER
   TESTER
+}
+
+// ============================================================
+// GROUP INVITATIONS
+// ============================================================
+
+model GroupInvitation {
+  id           String           @id @default(cuid())
+  token        String           @unique
+  email        String
+  role         GroupMemberRole  @default(TESTER)
+  status       InvitationStatus @default(PENDING)
+  appGroupId   String?
+  orgGroupId   String?
+  invitedById  String
+  acceptedById String?
+  expiresAt    DateTime
+  createdAt    DateTime         @default(now())
+  acceptedAt   DateTime?
+
+  appGroup   AppDistGroup? @relation(fields: [appGroupId], references: [id], onDelete: Cascade)
+  orgGroup   OrgDistGroup? @relation(fields: [orgGroupId], references: [id], onDelete: Cascade)
+  invitedBy  User          @relation("GroupInvitationsSent",     fields: [invitedById],  references: [id])
+  acceptedBy User?         @relation("GroupInvitationsReceived", fields: [acceptedById], references: [id])
+
+  @@unique([appGroupId, email])
+  @@unique([orgGroupId, email])
+  @@index([token])
+  @@index([email])
 }
 
 // ============================================================

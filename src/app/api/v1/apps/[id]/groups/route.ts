@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
 import { isPrismaError } from '@/lib/db'
 import { requireAppRole } from '@/lib/permissions'
+import { generateInviteToken, getInvitationExpiryDate } from '@/lib/invite-token'
+import { sendGroupInvitationEmail } from '@/lib/email'
 import { z } from 'zod'
 
 const memberSchema = z.object({
@@ -12,7 +14,7 @@ const memberSchema = z.object({
 const createGroupSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
-  members: z.array(memberSchema).min(1, 'At least one member is required'),
+  members: z.array(memberSchema).default([]),
 })
 
 export async function GET(
@@ -91,53 +93,103 @@ export async function POST(
 
   const { name, description, members } = parsed.data
 
-  // Look up users by email
-  const emails = members.map((m) => m.email)
-  const users = await db.user.findMany({
-    where: { email: { in: emails } },
-    select: { id: true, email: true },
+  // Look up app for name + org info
+  const app = await db.app.findUnique({
+    where: { id: params.id },
+    select: { name: true, orgId: true },
   })
-
-  const userMap = new Map(users.map((u) => [u.email, u.id]))
-  const missingEmails = emails.filter((e) => !userMap.has(e))
-  if (missingEmails.length > 0) {
-    return errorResponse(
-      'BAD_REQUEST',
-      `Users not found: ${missingEmails.join(', ')}`,
-      400,
-    )
+  if (!app) {
+    return errorResponse('NOT_FOUND', 'App not found', 404)
   }
 
+  // Look up users by email
+  const emails = members.map((m) => m.email)
+  const users = emails.length > 0
+    ? await db.user.findMany({
+        where: { email: { in: emails } },
+        select: { id: true, email: true },
+      })
+    : []
+
+  const userMap = new Map(users.map((u) => [u.email.toLowerCase(), u.id]))
+  const existingMembers = members.filter((m) => userMap.has(m.email.toLowerCase()))
+  const newInvites = members.filter((m) => !userMap.has(m.email.toLowerCase()))
+
+  let group: { id: string; name: string; description: string | null; _count: { members: number }; createdAt: Date }
+
   try {
-    const group = await db.appDistGroup.create({
+    group = await db.appDistGroup.create({
       data: {
         appId: params.id,
         name,
         description: description ?? null,
-        members: {
-          create: members.map((m) => ({
-            userId: userMap.get(m.email)!,
-            role: m.role,
-          })),
-        },
+        members: existingMembers.length > 0
+          ? {
+              create: existingMembers.map((m) => ({
+                userId: userMap.get(m.email.toLowerCase())!,
+                role: m.role,
+              })),
+            }
+          : undefined,
       },
       include: { _count: { select: { members: true } } },
     })
-
-    return successResponse(
-      {
-        id: group.id,
-        name: group.name,
-        description: group.description,
-        memberCount: group._count.members,
-        createdAt: group.createdAt.toISOString(),
-      },
-      201,
-    )
   } catch (err: unknown) {
     if (isPrismaError(err, 'P2002')) {
       return errorResponse('CONFLICT', 'A group with this name already exists for this app', 409)
     }
     throw err
   }
+
+  // Send invites for unknown emails
+  if (newInvites.length > 0) {
+    const inviter = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { firstName: true, lastName: true, email: true },
+    })
+    const inviterName =
+      inviter?.firstName && inviter?.lastName
+        ? `${inviter.firstName} ${inviter.lastName}`
+        : (inviter?.email ?? 'Someone')
+
+    const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+    for (const m of newInvites) {
+      const email = m.email.toLowerCase()
+      const token = generateInviteToken()
+      const expiresAt = getInvitationExpiryDate()
+
+      await db.groupInvitation.create({
+        data: {
+          token,
+          email,
+          role: m.role,
+          appGroupId: group.id,
+          invitedById: session.user.id,
+          expiresAt,
+        },
+      })
+
+      const acceptUrl = `${baseUrl}/invitations/group/${token}/accept`
+      await sendGroupInvitationEmail({
+        to: email,
+        groupName: name,
+        contextName: app.name,
+        inviterName,
+        role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
+        acceptUrl,
+      })
+    }
+  }
+
+  return successResponse(
+    {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      memberCount: group._count.members,
+      createdAt: group.createdAt.toISOString(),
+    },
+    201,
+  )
 }

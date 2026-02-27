@@ -45,6 +45,32 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
   await sendMail(to, subject, html)
 }
 
+interface GroupInvitationEmailParams {
+  to: string
+  groupName: string
+  contextName: string
+  inviterName: string
+  role: string
+  acceptUrl: string
+}
+
+/**
+ * Send an invitation email to join a distribution group.
+ */
+export async function sendGroupInvitationEmail(params: GroupInvitationEmailParams): Promise<void> {
+  const subject = `You've been invited to join the ${params.groupName} distribution group on DeployMate`
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2 style="color: #0077b6;">You've been invited!</h2>
+      <p><strong>${params.inviterName}</strong> invited you to join the <strong>${params.groupName}</strong> distribution group for <strong>${params.contextName}</strong> as a <strong>${params.role}</strong>.</p>
+      <a href="${params.acceptUrl}" style="display: inline-block; padding: 12px 24px; background: #0077b6; color: #fff; text-decoration: none; border-radius: 6px; margin: 16px 0;">Accept Invitation</a>
+      <p style="color: #666; font-size: 14px;">If you didn't expect this email, you can safely ignore it.</p>
+    </div>
+  `
+
+  await sendMail(params.to, subject, html)
+}
+
 interface NewReleaseEmailParams {
   to: string
   appName: string

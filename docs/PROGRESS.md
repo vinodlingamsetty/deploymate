@@ -180,11 +180,13 @@
 ### App-Level Groups
 - [x] List app groups (`GET /api/v1/apps/:appId/groups`)
 - [x] Create app group sheet (group name + add members with email/role)
-- [x] Get app group details (`GET /api/v1/groups/app/:groupId`)
+- [x] Get app group details (`GET /api/v1/groups/app/:groupId`) — includes `pendingInvitations`
 - [x] Update app group (`PATCH /api/v1/groups/app/:groupId`)
 - [x] Delete app group (`DELETE /api/v1/groups/app/:groupId`)
-- [x] Add members to app group (`POST /api/v1/groups/app/:groupId/members`)
+- [x] Add members to app group (`POST /api/v1/groups/app/:groupId/members`) — splits known users vs email invites
 - [x] Remove member from app group (`DELETE /api/v1/groups/app/:groupId/members/:uid`)
+- [x] Wire up manage app group sheet (real add/remove member API calls)
+- [x] Pending invitations section in manage app group sheet (Resend + Revoke)
 
 ### Org-Level Groups
 - [x] Groups page (`/groups?org=[slug]`) - list all org groups
@@ -196,10 +198,19 @@
 - [x] Get org group details (`GET /api/v1/groups/org/:groupId`)
 - [x] Update org group (`PATCH /api/v1/groups/org/:groupId`)
 - [x] Delete org group (`DELETE /api/v1/groups/org/:groupId`)
-- [x] Add members to org group (`POST /api/v1/groups/org/:groupId/members`)
+- [x] Add members to org group (`POST /api/v1/groups/org/:groupId/members`) — splits known users vs email invites
 - [x] Remove member from org group (`DELETE /api/v1/groups/org/:groupId/members/:uid`)
 - [x] Add apps to org group (`POST /api/v1/groups/org/:groupId/apps`)
 - [x] Remove app from org group (`DELETE /api/v1/groups/org/:groupId/apps/:appId`)
+
+### Group Invitations
+- [x] `GroupInvitation` Prisma model + migration
+- [x] `GET /api/v1/group-invitations/:token` — public lookup by token
+- [x] `POST /api/v1/group-invitations/:token/accept` — accept invite (auth required, email match)
+- [x] `POST /api/v1/group-invitations/:id/resend` — regenerate token and resend email (Manager+)
+- [x] `DELETE /api/v1/group-invitations/:id/revoke` — revoke pending invite (Manager+)
+- [x] `/invitations/group/[token]/accept` page — shows group/app details, sign-in/sign-up buttons, accept button
+- [x] `sendGroupInvitationEmail()` email helper
 
 ### Release-Group Linking
 - [x] Link releases to distribution groups on publish

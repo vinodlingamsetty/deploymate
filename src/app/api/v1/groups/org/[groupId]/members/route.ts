@@ -1,5 +1,7 @@
 import { auth } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-utils'
+import { generateInviteToken, getInvitationExpiryDate } from '@/lib/invite-token'
+import { sendGroupInvitationEmail } from '@/lib/email'
 import { z } from 'zod'
 
 const addMembersSchema = z.object({
@@ -28,7 +30,7 @@ export async function POST(
 
   const group = await db.orgDistGroup.findUnique({
     where: { id: params.groupId },
-    select: { id: true, orgId: true },
+    include: { organization: { select: { id: true, name: true } } },
   })
   if (!group) {
     return errorResponse('NOT_FOUND', 'Group not found', 404)
@@ -36,7 +38,7 @@ export async function POST(
 
   // Verify user belongs to this org
   const membership = await db.membership.findUnique({
-    where: { userId_orgId: { userId: session.user.id, orgId: group.orgId } },
+    where: { userId_orgId: { userId: session.user.id, orgId: group.organization.id } },
   })
   if (!membership) {
     return errorResponse('FORBIDDEN', 'You do not have access to this group', 403)
@@ -66,24 +68,81 @@ export async function POST(
     select: { id: true, email: true },
   })
 
-  const userMap = new Map(users.map((u) => [u.email, u.id]))
-  const missingEmails = emails.filter((e) => !userMap.has(e))
-  if (missingEmails.length > 0) {
-    return errorResponse(
-      'BAD_REQUEST',
-      `Users not found: ${missingEmails.join(', ')}`,
-      400,
-    )
+  const userMap = new Map(users.map((u) => [u.email.toLowerCase(), u.id]))
+
+  // Get inviter name for email
+  const inviter = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { firstName: true, lastName: true, email: true },
+  })
+  const inviterName =
+    inviter?.firstName && inviter?.lastName
+      ? `${inviter.firstName} ${inviter.lastName}`
+      : (inviter?.email ?? 'Someone')
+
+  const existingMembers = members.filter((m) => userMap.has(m.email.toLowerCase()))
+  const newInvites = members.filter((m) => !userMap.has(m.email.toLowerCase()))
+
+  // Add existing users directly
+  if (existingMembers.length > 0) {
+    await db.orgGroupMember.createMany({
+      data: existingMembers.map((m) => ({
+        groupId: params.groupId,
+        userId: userMap.get(m.email.toLowerCase())!,
+        role: m.role,
+      })),
+      skipDuplicates: true,
+    })
   }
 
-  await db.orgGroupMember.createMany({
-    data: members.map((m) => ({
-      groupId: params.groupId,
-      userId: userMap.get(m.email)!,
-      role: m.role,
-    })),
-    skipDuplicates: true,
-  })
+  // Invite unknown emails
+  let invited = 0
+  const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  return successResponse({ added: members.length }, 201)
+  for (const m of newInvites) {
+    const email = m.email.toLowerCase()
+
+    const existing = await db.groupInvitation.findUnique({
+      where: { orgGroupId_email: { orgGroupId: params.groupId, email } },
+    })
+
+    if (existing && existing.status === 'PENDING') {
+      continue
+    }
+
+    const token = generateInviteToken()
+    const expiresAt = getInvitationExpiryDate()
+
+    if (existing) {
+      await db.groupInvitation.update({
+        where: { id: existing.id },
+        data: { token, expiresAt, status: 'PENDING', invitedById: session.user.id },
+      })
+    } else {
+      await db.groupInvitation.create({
+        data: {
+          token,
+          email,
+          role: m.role,
+          orgGroupId: params.groupId,
+          invitedById: session.user.id,
+          expiresAt,
+        },
+      })
+    }
+
+    const acceptUrl = `${baseUrl}/invitations/group/${token}/accept`
+    await sendGroupInvitationEmail({
+      to: email,
+      groupName: group.name,
+      contextName: group.organization.name,
+      inviterName,
+      role: m.role.charAt(0) + m.role.slice(1).toLowerCase(),
+      acceptUrl,
+    })
+
+    invited++
+  }
+
+  return successResponse({ added: existingMembers.length, invited }, 201)
 }

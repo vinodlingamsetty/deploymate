@@ -43,6 +43,7 @@ export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [], 
       const groupDetail: MockAppDistGroupDetail = {
         ...json.data,
         memberCount: json.data.members.length,
+        pendingInvitations: json.data.pendingInvitations ?? [],
       }
 
       setActiveGroup(groupDetail)
@@ -165,6 +166,17 @@ export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [], 
         onOpenChange={setManageSheetOpen}
         group={activeGroup}
         onGroupRenamed={handleGroupRenamed}
+        onRefreshGroup={async (groupId) => {
+          const res = await fetch(`/api/v1/groups/app/${groupId}`)
+          if (!res.ok) return
+          const json = await res.json()
+          const groupDetail: MockAppDistGroupDetail = {
+            ...json.data,
+            memberCount: json.data.members.length,
+            pendingInvitations: json.data.pendingInvitations ?? [],
+          }
+          setActiveGroup(groupDetail)
+        }}
       />
     </>
   )

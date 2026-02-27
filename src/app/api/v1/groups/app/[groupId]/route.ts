@@ -51,20 +51,27 @@ export async function GET(
   if ('error' in result) return result.error
   const { db } = result
 
-  const group = await db.appDistGroup.findUnique({
-    where: { id: params.groupId },
-    include: {
-      members: {
-        include: {
-          user: {
-            select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
+  const [group, pendingInvitations] = await Promise.all([
+    db.appDistGroup.findUnique({
+      where: { id: params.groupId },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
+            },
           },
+          orderBy: { createdAt: 'asc' },
+          take: 100,
         },
-        orderBy: { createdAt: 'asc' },
-        take: 100,
       },
-    },
-  })
+    }),
+    db.groupInvitation.findMany({
+      where: { appGroupId: params.groupId, status: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    }),
+  ])
 
   if (!group) {
     return errorResponse('NOT_FOUND', 'Group not found', 404)
@@ -83,6 +90,13 @@ export async function GET(
       lastName: m.user.lastName,
       avatarUrl: m.user.avatarUrl,
       role: m.role,
+    })),
+    pendingInvitations: pendingInvitations.map((inv) => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role,
+      createdAt: inv.createdAt.toISOString(),
+      expiresAt: inv.expiresAt.toISOString(),
     })),
   })
 }

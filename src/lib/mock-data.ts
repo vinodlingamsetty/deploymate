@@ -385,6 +385,7 @@ export const MOCK_APP_GROUP_DETAILS: Record<string, MockAppDistGroupDetail> = {
       { userId: 'u2', email: 'bob@example.com', firstName: 'Bob', lastName: 'Smith', avatarUrl: null, role: 'TESTER' },
       { userId: 'u3', email: 'carol@example.com', firstName: 'Carol', lastName: 'Williams', avatarUrl: null, role: 'TESTER' },
     ],
+    pendingInvitations: [],
   },
   'app-group-ft-qa': {
     id: 'app-group-ft-qa',
@@ -397,6 +398,7 @@ export const MOCK_APP_GROUP_DETAILS: Record<string, MockAppDistGroupDetail> = {
       { userId: 'u4', email: 'dave@example.com', firstName: 'Dave', lastName: 'Brown', avatarUrl: null, role: 'MANAGER' },
       { userId: 'u5', email: 'eve@example.com', firstName: 'Eve', lastName: 'Davis', avatarUrl: null, role: 'TESTER' },
     ],
+    pendingInvitations: [],
   },
   'app-group-crm-alpha': {
     id: 'app-group-crm-alpha',
@@ -408,6 +410,7 @@ export const MOCK_APP_GROUP_DETAILS: Record<string, MockAppDistGroupDetail> = {
     members: [
       { userId: 'u1', email: 'alice@example.com', firstName: 'Alice', lastName: 'Johnson', avatarUrl: null, role: 'MANAGER' },
     ],
+    pendingInvitations: [],
   },
   'app-group-sr-beta': {
     id: 'app-group-sr-beta',
@@ -421,6 +424,7 @@ export const MOCK_APP_GROUP_DETAILS: Record<string, MockAppDistGroupDetail> = {
       { userId: 'u3', email: 'carol@example.com', firstName: 'Carol', lastName: 'Williams', avatarUrl: null, role: 'TESTER' },
       { userId: 'u6', email: 'frank@example.com', firstName: 'Frank', lastName: 'Miller', avatarUrl: null, role: 'TESTER' },
     ],
+    pendingInvitations: [],
   },
 }
 

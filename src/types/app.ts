@@ -97,8 +97,17 @@ export interface MockAppDistGroup {
   createdAt: string
 }
 
+export interface MockGroupInvitation {
+  id: string
+  email: string
+  role: GroupMemberRole
+  createdAt: string
+  expiresAt: string
+}
+
 export interface MockAppDistGroupDetail extends MockAppDistGroup {
   members: MockAppDistGroupMember[]
+  pendingInvitations: MockGroupInvitation[]
 }
 
 export interface MockOrgDistGroupMember {

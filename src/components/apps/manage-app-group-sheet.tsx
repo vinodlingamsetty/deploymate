@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, X } from 'lucide-react'
+import { Loader2, Pencil, RefreshCw, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import type { GroupMemberRole, MockAppDistGroupDetail } from '@/types/app'
+import type { GroupMemberRole, MockAppDistGroupDetail, MockGroupInvitation } from '@/types/app'
 import { getInitials } from '@/lib/formatting'
 import { isValidEmail } from '@/lib/validation'
 
@@ -29,6 +29,7 @@ interface ManageAppGroupSheetProps {
   onOpenChange: (open: boolean) => void
   group: MockAppDistGroupDetail | null
   onGroupRenamed?: (groupId: string, newName: string) => void
+  onRefreshGroup?: (groupId: string) => Promise<void>
 }
 
 export function ManageAppGroupSheet({
@@ -36,12 +37,18 @@ export function ManageAppGroupSheet({
   onOpenChange,
   group,
   onGroupRenamed,
+  onRefreshGroup,
 }: ManageAppGroupSheetProps) {
   const [addEmail, setAddEmail] = useState('')
   const [addRole, setAddRole] = useState<GroupMemberRole>('TESTER')
+  const [isAdding, setIsAdding] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const [editName, setEditName] = useState('')
   const [isSavingName, setIsSavingName] = useState(false)
+  const [resendingId, setResendingId] = useState<string | null>(null)
+  const [revokingId, setRevokingId] = useState<string | null>(null)
+  // Optimistic remove for pending invitations
+  const [revokedIds, setRevokedIds] = useState<Set<string>>(new Set())
 
   async function handleSaveName() {
     if (!group) return
@@ -66,29 +73,102 @@ export function ManageAppGroupSheet({
 
   const canAdd = isValidEmail(addEmail)
 
-  function handleAddUser() {
-    if (!canAdd || !group) return
-    console.log('Add member to group:', { groupId: group.id, email: addEmail.trim(), role: addRole })
-    toast.success(`Added ${addEmail.trim()} to group`)
-    setAddEmail('')
-    setAddRole('TESTER')
+  async function handleAddUser() {
+    if (!canAdd || !group || isAdding) return
+    setIsAdding(true)
+    try {
+      const res = await fetch(`/api/v1/groups/app/${group.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ members: [{ email: addEmail.trim(), role: addRole }] }),
+      })
+      const json = await res.json() as { data?: { added: number; invited: number }; error?: { message?: string } }
+      if (!res.ok) {
+        toast.error(json.error?.message ?? 'Failed to add member')
+        return
+      }
+      const { added = 0, invited = 0 } = json.data ?? {}
+      if (added > 0 && invited > 0) {
+        toast.success(`Added 1 member and sent 1 invite`)
+      } else if (added > 0) {
+        toast.success(`Added ${addEmail.trim()} to group`)
+      } else if (invited > 0) {
+        toast.success(`Invite sent to ${addEmail.trim()}`)
+      }
+      setAddEmail('')
+      setAddRole('TESTER')
+      await onRefreshGroup?.(group.id)
+    } finally {
+      setIsAdding(false)
+    }
   }
 
-  function handleRemoveMember(userId: string, email: string) {
+  async function handleRemoveMember(userId: string, email: string) {
     if (!group) return
-    console.log('Remove member:', { groupId: group.id, userId })
+    const res = await fetch(`/api/v1/groups/app/${group.id}/members/${userId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) {
+      const json = await res.json()
+      toast.error(json.error?.message ?? 'Failed to remove member')
+      return
+    }
     toast.success(`Removed ${email} from group`)
+    await onRefreshGroup?.(group.id)
+  }
+
+  async function handleResendInvite(inv: MockGroupInvitation) {
+    setResendingId(inv.id)
+    try {
+      const res = await fetch(`/api/v1/group-invitations/${inv.id}/resend`, {
+        method: 'POST',
+      })
+      const json = await res.json() as { error?: { message?: string } }
+      if (!res.ok) {
+        toast.error(json.error?.message ?? 'Failed to resend invite')
+        return
+      }
+      toast.success('Invite resent')
+    } finally {
+      setResendingId(null)
+    }
+  }
+
+  async function handleRevokeInvite(inv: MockGroupInvitation) {
+    setRevokingId(inv.id)
+    // Optimistic remove
+    setRevokedIds((prev) => new Set(Array.from(prev).concat(inv.id)))
+    try {
+      const res = await fetch(`/api/v1/group-invitations/${inv.id}/revoke`, {
+        method: 'DELETE',
+      })
+      const json = await res.json() as { error?: { message?: string } }
+      if (!res.ok) {
+        // Undo optimistic remove
+        setRevokedIds((prev) => { const next = new Set(prev); next.delete(inv.id); return next })
+        toast.error(json.error?.message ?? 'Failed to revoke invite')
+        return
+      }
+      toast.success('Invite revoked')
+    } finally {
+      setRevokingId(null)
+    }
   }
 
   function handleClose() {
     setIsEditingName(false)
     setEditName('')
+    setRevokedIds(new Set())
     onOpenChange(false)
     setAddEmail('')
     setAddRole('TESTER')
   }
 
   if (!group) return null
+
+  const visibleInvitations = (group.pendingInvitations ?? []).filter(
+    (inv) => !revokedIds.has(inv.id),
+  )
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
@@ -173,7 +253,7 @@ export function ManageAppGroupSheet({
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleRemoveMember(m.userId, m.email)}
+                      onClick={() => void handleRemoveMember(m.userId, m.email)}
                       className="flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-muted"
                       aria-label={`Remove ${m.email}`}
                     >
@@ -183,6 +263,50 @@ export function ManageAppGroupSheet({
                 ))}
               </div>
             </div>
+
+            {/* Pending Invitations */}
+            {visibleInvitations.length > 0 && (
+              <div className="space-y-2">
+                <Label>Pending Invitations ({visibleInvitations.length})</Label>
+                <div className="space-y-2">
+                  {visibleInvitations.map((inv) => (
+                    <div
+                      key={inv.id}
+                      className="flex items-center gap-3 rounded-md border border-dashed px-3 py-2"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm">{inv.email}</p>
+                      </div>
+                      <span className="inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        {inv.role === 'MANAGER' ? 'Manager' : 'Tester'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void handleResendInvite(inv)}
+                        disabled={resendingId === inv.id}
+                        className="flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-muted disabled:opacity-50"
+                        aria-label={`Resend invite to ${inv.email}`}
+                        title="Resend invite"
+                      >
+                        {resendingId === inv.id
+                          ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                          : <RefreshCw className="size-3.5" aria-hidden="true" />
+                        }
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleRevokeInvite(inv)}
+                        disabled={revokingId === inv.id}
+                        className="flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-muted disabled:opacity-50"
+                        aria-label={`Revoke invite for ${inv.email}`}
+                      >
+                        <X className="size-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Add user section */}
             <div className="space-y-2">
@@ -197,7 +321,7 @@ export function ManageAppGroupSheet({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
-                      handleAddUser()
+                      void handleAddUser()
                     }
                   }}
                 />
@@ -218,10 +342,10 @@ export function ManageAppGroupSheet({
                   variant="outline"
                   size="sm"
                   className="shrink-0"
-                  disabled={!canAdd}
-                  onClick={handleAddUser}
+                  disabled={!canAdd || isAdding}
+                  onClick={() => void handleAddUser()}
                 >
-                  Add
+                  {isAdding ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : 'Add'}
                 </Button>
               </div>
             </div>
