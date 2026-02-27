@@ -63,6 +63,7 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
    pnpm lint        # ESLint
    pnpm typecheck   # TypeScript compiler check (tsc --noEmit)
    pnpm build       # Verify production build succeeds
+   pnpm quality:all # Legacy/slop quality checks (unused code, duplication, deps, semgrep, coverage)
    ```
 
 4. **Commit your changes** with a clear, descriptive message:
@@ -136,6 +137,21 @@ Before marking your PR ready for review, confirm:
 - [ ] New API routes return correct `{ data }` / `{ error }` shapes
 - [ ] No `any` types introduced
 - [ ] No hardcoded secrets or credentials
+- [ ] Quality checks reviewed (`pnpm quality:all`) or CI quality artifacts inspected
+
+---
+
+## AI-Generated Contributions
+
+AI-assisted code is allowed, but changes must still be engineering-grade and reviewable.
+
+- Keep PRs small and focused; avoid large AI-generated dumps.
+- Explain intent and tradeoffs in the PR description.
+- Add tests for any non-trivial behavior changes.
+- Remove dead code and duplicated code introduced during iteration.
+- Do not introduce broad abstractions without a concrete use case.
+
+Maintainers may request manual rewrites when generated code is hard to reason about or poorly scoped.
 
 ---
 

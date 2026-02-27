@@ -1,0 +1,19 @@
+{
+  "absolute": false,
+  "minLines": 10,
+  "minTokens": 80,
+  "output": ".reports/jscpd",
+  "reporters": ["console", "json"],
+  "threshold": 8,
+  "ignore": [
+    "**/.git/**",
+    "**/.next/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/docs-site/build/**",
+    "**/docs-site/node_modules/**",
+    "**/node_modules/**",
+    "**/pnpm-lock.yaml",
+    "**/package-lock.json"
+  ]
+}

@@ -153,6 +153,7 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 ## Compliance
 
 - SBOM + license inventory + optional BYO FOSSA policy scan are documented in `docs-site/docs/compliance/fossa-and-sbom.md`.
+- Legacy/slop code detection and AI-code quality checks are documented in `docs-site/docs/compliance/code-quality-and-slop-detection.md`.
 - Enterprise GCP deployment references are in `docs/enterprise-gcp-deployment-guide.md`.
 
 ---

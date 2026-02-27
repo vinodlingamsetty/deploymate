@@ -12,6 +12,8 @@ DeployMate supports a company-owned compliance model:
    - SBOM (CycloneDX JSON)
    - License inventory JSON
 
+For maintainability and AI-code quality controls, see [Code Quality and Slop Detection](./code-quality-and-slop-detection.md).
+
 ## FOSSA: Bring Your Own Policy
 
 To use FOSSA with your company policy:

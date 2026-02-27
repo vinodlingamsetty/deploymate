@@ -18,6 +18,12 @@
     "test:integration": "vitest run --config vitest.config.integration.ts",
     "test:integration:watch": "vitest --config vitest.config.integration.ts",
     "db:seed": "tsx prisma/seed.ts",
+    "quality:unused": "npx -y knip --no-progress",
+    "quality:dup": "npx -y jscpd --config .jscpd.json",
+    "quality:deps": "npx -y dependency-cruiser --config .dependency-cruiser.cjs src --output-type err-long",
+    "quality:semgrep": "mkdir -p .reports && npx -y @semgrep/semgrep scan --config auto --severity ERROR --error --json --output .reports/semgrep.json --exclude .next --exclude node_modules --exclude docs-site/build --exclude docs-site/node_modules",
+    "quality:coverage": "npx -y c8 --check-coverage --lines 70 --functions 70 --statements 70 --branches 60 pnpm test",
+    "quality:all": "pnpm quality:unused && pnpm quality:dup && pnpm quality:deps && pnpm quality:semgrep && pnpm quality:coverage",
     "docs:dev": "cd docs-site && npm run start",
     "docs:build": "cd docs-site && npm run build"
   },

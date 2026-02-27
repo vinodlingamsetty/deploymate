@@ -30,7 +30,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Compliance',
-      items: ['compliance/fossa-and-sbom'],
+      items: ['compliance/fossa-and-sbom', 'compliance/code-quality-and-slop-detection'],
     },
   ],
 };

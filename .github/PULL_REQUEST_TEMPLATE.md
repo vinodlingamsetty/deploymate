@@ -16,11 +16,18 @@ Brief description of the changes in this PR.
 - [ ] Documentation update
 - [ ] Refactoring (no functional changes)
 
+## AI Assistance
+
+- [ ] This PR includes AI-generated code
+- [ ] I manually reviewed all generated code paths and edge cases
+- [ ] I added or updated tests for non-trivial generated logic
+
 ## Checklist
 
 - [ ] TypeScript compiles without errors (`pnpm typecheck`)
 - [ ] Linting passes (`pnpm lint`)
 - [ ] Production build succeeds (`pnpm build`)
+- [ ] Quality checks pass or quality artifacts were reviewed (`pnpm quality:all`)
 - [ ] Changes are mobile-responsive
 - [ ] Accessibility standards maintained (WCAG 2.1 AA)
 - [ ] New API endpoints follow `{ data, meta }` / `{ error: { code, message } }` format
