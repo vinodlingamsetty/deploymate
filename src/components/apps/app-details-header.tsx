@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, MoreVertical, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, MoreVertical, Pencil, Trash2, Upload, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -32,11 +33,35 @@ interface AppDetailsHeaderProps {
 
 export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
   const router = useRouter()
+  const [localName, setLocalName] = useState(app.name)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [isSavingName, setIsSavingName] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [uploadSheetOpen, setUploadSheetOpen] = useState(false)
 
-  const canDelete = deleteConfirmName.trim() === app.name
+  const canDelete = deleteConfirmName.trim() === localName
+
+  async function handleSaveName() {
+    const trimmed = editName.trim()
+    if (!trimmed || trimmed === localName) { setIsEditingName(false); return }
+    setIsSavingName(true)
+    const res = await fetch(`/api/v1/apps/${app.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: trimmed }),
+    })
+    setIsSavingName(false)
+    if (!res.ok) {
+      const json = await res.json() as { error?: { message?: string } }
+      toast.error(json.error?.message ?? 'Failed to rename app')
+      return
+    }
+    setLocalName(trimmed)
+    setIsEditingName(false)
+    toast.success('App renamed')
+  }
 
   function handleDelete() {
     if (!canDelete) return
@@ -74,9 +99,50 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
 
         {/* App info */}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold leading-tight sm:text-2xl" title={app.name}>
-            {app.name}
-          </h1>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                autoFocus
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveName()
+                  if (e.key === 'Escape') setIsEditingName(false)
+                }}
+                className="h-8 text-xl font-bold sm:text-2xl"
+                aria-label="App name"
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveName}
+                disabled={isSavingName || !editName.trim()}
+              >
+                Save
+              </Button>
+              <button
+                type="button"
+                aria-label="Cancel rename"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setIsEditingName(false)}
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-xl font-bold leading-tight sm:text-2xl" title={localName}>
+                {localName}
+              </h1>
+              <button
+                type="button"
+                aria-label="Rename app"
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => { setEditName(localName); setIsEditingName(true) }}
+              >
+                <Pencil className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          )}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
               {getPlatformLabel(app.platform)}
@@ -131,7 +197,7 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
         open={uploadSheetOpen}
         onOpenChange={setUploadSheetOpen}
         platform={app.platform}
-        appName={app.name}
+        appName={localName}
         appId={app.id}
         orgSlug={app.org.slug}
       />
@@ -140,7 +206,7 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
       <Dialog open={deleteDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Delete {app.name}?</DialogTitle>
+            <DialogTitle>Delete {localName}?</DialogTitle>
             <DialogDescription>
               This action cannot be undone. All releases, feedback, and distribution
               group data for this app will be permanently deleted.
@@ -149,13 +215,13 @@ export function AppDetailsHeader({ app }: AppDetailsHeaderProps) {
 
           <div className="space-y-2">
             <Label htmlFor="delete-confirm">
-              Type <strong>{app.name}</strong> to confirm
+              Type <strong>{localName}</strong> to confirm
             </Label>
             <Input
               id="delete-confirm"
               value={deleteConfirmName}
               onChange={(e) => setDeleteConfirmName(e.target.value)}
-              placeholder={app.name}
+              placeholder={localName}
               aria-describedby="delete-confirm-hint"
             />
             <p id="delete-confirm-hint" className="sr-only">
