@@ -19,11 +19,17 @@ export function GroupsPageContent({ orgName, orgSlug, groups }: GroupsPageConten
   const [createSheetOpen, setCreateSheetOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MockOrgDistGroupDetail | null>(null)
+  const [localGroups, setLocalGroups] = useState(groups)
 
   function handleManageGroup(groupId: string) {
     const detail = MOCK_ORG_GROUP_DETAILS[groupId] ?? null
     setActiveGroup(detail)
     setManageSheetOpen(true)
+  }
+
+  function handleGroupRenamed(groupId: string, newName: string) {
+    setLocalGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, name: newName } : g))
+    setActiveGroup((prev) => prev && prev.id === groupId ? { ...prev, name: newName } : prev)
   }
 
   return (
@@ -45,9 +51,9 @@ export function GroupsPageContent({ orgName, orgSlug, groups }: GroupsPageConten
         </div>
 
         {/* Group cards */}
-        {groups.length > 0 ? (
+        {localGroups.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {groups.map((group) => (
+            {localGroups.map((group) => (
               <div
                 key={group.id}
                 className="flex flex-col gap-3 rounded-lg border p-4"
@@ -108,6 +114,7 @@ export function GroupsPageContent({ orgName, orgSlug, groups }: GroupsPageConten
         onOpenChange={setManageSheetOpen}
         group={activeGroup}
         orgSlug={orgSlug}
+        onGroupRenamed={handleGroupRenamed}
       />
     </>
   )

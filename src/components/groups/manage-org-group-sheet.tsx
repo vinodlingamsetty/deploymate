@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Pencil, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Sheet,
@@ -23,6 +24,7 @@ interface ManageOrgGroupSheetProps {
   onOpenChange: (open: boolean) => void
   group: MockOrgDistGroupDetail | null
   orgSlug: string
+  onGroupRenamed?: (groupId: string, newName: string) => void
 }
 
 export function ManageOrgGroupSheet({
@@ -30,9 +32,34 @@ export function ManageOrgGroupSheet({
   onOpenChange,
   group,
   orgSlug,
+  onGroupRenamed,
 }: ManageOrgGroupSheetProps) {
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [addAppsOpen, setAddAppsOpen] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [isSavingName, setIsSavingName] = useState(false)
+
+  async function handleSaveName() {
+    if (!group) return
+    const trimmed = editName.trim()
+    if (!trimmed || trimmed === group.name) { setIsEditingName(false); return }
+    setIsSavingName(true)
+    const res = await fetch(`/api/v1/groups/org/${group.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: trimmed }),
+    })
+    setIsSavingName(false)
+    if (!res.ok) {
+      const json = await res.json()
+      toast.error(json.error?.message ?? 'Failed to rename group')
+      return
+    }
+    onGroupRenamed?.(group.id, trimmed)
+    setIsEditingName(false)
+    toast.success('Group renamed')
+  }
 
   function handleRemoveMember(userId: string, email: string) {
     if (!group) return
@@ -47,6 +74,8 @@ export function ManageOrgGroupSheet({
   }
 
   function handleClose() {
+    setIsEditingName(false)
+    setEditName('')
     onOpenChange(false)
   }
 
@@ -59,7 +88,47 @@ export function ManageOrgGroupSheet({
       <Sheet open={open} onOpenChange={handleClose}>
         <SheetContent side="right" className="flex w-full max-w-md flex-col gap-0 p-0">
           <SheetHeader className="border-b px-6 py-4">
-            <SheetTitle>{group.name}</SheetTitle>
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); void handleSaveName() }
+                    if (e.key === 'Escape') { setIsEditingName(false) }
+                  }}
+                  className="h-8 text-base font-semibold"
+                />
+                <Button
+                  size="sm"
+                  disabled={isSavingName || !editName.trim()}
+                  onClick={() => void handleSaveName()}
+                >
+                  Save
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingName(false)}
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted"
+                  aria-label="Cancel rename"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <SheetTitle>{group.name}</SheetTitle>
+                <button
+                  type="button"
+                  onClick={() => { setEditName(group.name); setIsEditingName(true) }}
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted"
+                  aria-label="Rename group"
+                >
+                  <Pencil className="size-4 text-muted-foreground" aria-hidden="true" />
+                </button>
+              </div>
+            )}
           </SheetHeader>
 
           <div className="flex flex-1 flex-col overflow-y-auto">

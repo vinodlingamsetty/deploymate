@@ -25,9 +25,12 @@ export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [], 
   const [createSheetOpen, setCreateSheetOpen] = useState(false)
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MockAppDistGroupDetail | null>(null)
+  const [groups, setGroups] = useState(initialGroups)
 
-  // Use passed groups or fallback to empty (mock data removed for groups list)
-  const groups = initialGroups
+  function handleGroupRenamed(groupId: string, newName: string) {
+    setGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, name: newName } : g))
+    setActiveGroup((prev) => prev && prev.id === groupId ? { ...prev, name: newName } : prev)
+  }
 
   async function handleManageGroup(groupId: string) {
     try {
@@ -161,6 +164,7 @@ export function AppTabs({ releases, appId, isAdmin = false, initialGroups = [], 
         open={manageSheetOpen}
         onOpenChange={setManageSheetOpen}
         group={activeGroup}
+        onGroupRenamed={handleGroupRenamed}
       />
     </>
   )
